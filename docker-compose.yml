@@ -1,11 +1,17 @@
-version: "3.7"
+version: "3.9"
 
 services:
-
-  webapp:
-    build: ./
-    image: webapp
+  api:
+    build:
+      dockerfile: ./Dockerfile
+    container_name: fastapi
     ports:
-      - "8000:8000"
+      - "8080:8080"
     volumes:
-      - "./:/code"
+      - ./app:/code/app
+    deploy:
+      resources:
+        limits:
+          cpus: "${ES_CPUS}"
+          memory: "${ES_MEMORY}"
+
