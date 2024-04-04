@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Response, status
 # # from app.services import UserService
 # # from app.repositories import NotFoundError
 #
-router = APIRouter(prefix='/test')
+router = APIRouter()
 @router.get("/")
 def test():
     return "connetion success"
