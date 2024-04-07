@@ -4,14 +4,43 @@ services:
   api:
     container_name: api
     build:
-      dockerfile: ./Dockerfile
+      dockerfile: app/Dockerfile
     ports:
       - "8080:8080"
     volumes:
       - ./app:/code/app
-    deploy:
-      resources:
-        limits:
-          cpus: "${ES_CPUS}"
-          memory: "${ES_MEMORY}"
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "${ES_CPUS}"
+#          memory: "${ES_MEMORY}"
+    command: uvicorn app.main:app --host "0.0.0.0" --port 8080 --reload
+
+  mlflow-deployment:
+    container_name: mlflow-deployment
+    build:
+      dockerfile: mlflow/deployment/Dockerfile
+    ports:
+      - "7001:7001"
+    networks:
+      - mlflow
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    command: mlflow deployments start-server --config-path /mlflow_deployment/config.yaml --host 0.0.0.0 --port 7001
+
+  mlflow-tracking:
+    container_name: mlflow-tracking
+    build:
+      dockerfile: mlflow/tracking/Dockerfile
+    ports:
+      - "5001:5001"
+    networks:
+      - mlflow
+    links:
+      - mlflow-deployment
+    environment:
+      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
+    command: mlflow server --host 0.0.0.0 --port 5001
+networks:
+  mlflow:
 
