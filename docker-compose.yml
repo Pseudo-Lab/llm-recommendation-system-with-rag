@@ -11,6 +11,8 @@ services:
     volumes:
       - ./app:/code/app
       - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
 #    deploy:
 #      resources:
 #        limits:

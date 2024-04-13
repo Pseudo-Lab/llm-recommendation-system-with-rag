@@ -1,16 +1,16 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from .api.router import api_router
-# from . import endpoints
-# from .containers import Container
-
+from app.container.containers import Container
 
 def create_app():
-    # container = Container()
-    # container.config.from_yaml("config.yml")
-    # container.wire(modules=[endpoints])
-    # fastapi_app.container = container
     app = FastAPI()
+    container = Container()
+    db = container.db()
+    db.create_database()
+
+    app.container = container
+
     origins = [
         "*"
     ]
