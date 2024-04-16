@@ -1,3 +1,5 @@
+from http.client import HTTPException
+
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends
 from app.container.containers import Container
@@ -17,9 +19,18 @@ async def create_vector(
 
 
 # Read - 모든 벡터 조회
-@router.get("/vector/")
-async def read_vectors():
-    pass
+@router.get("/")
+@inject
+async def transform_to_vectors(
+        vector_service: VectorService = Depends(Provide[Container.vector_service])
+):
+    try:
+        vector_service.transform_to_vectors()
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+
 
 # Read - 특정 ID의 벡터 조회
 @router.get("/vector/{vector_id}", response_model=Vector)

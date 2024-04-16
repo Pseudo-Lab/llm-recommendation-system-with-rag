@@ -8,9 +8,7 @@ def create_app():
     container = Container()
     db = container.db()
     db.create_database()
-
     app.container = container
-
     origins = [
         "*"
     ]
