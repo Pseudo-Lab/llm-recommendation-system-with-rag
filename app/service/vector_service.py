@@ -1,3 +1,7 @@
+import os
+import uuid
+
+from app.database.chroma_db import ChromaDB
 from app.service.movie_service import MovieService
 
 
@@ -40,6 +44,13 @@ class VectorService:
             print("\n")
 
         # vector_db 전환
-
+        workspace_id = uuid.uuid4()
+        vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}workspace_id'
+        print(vector_path)
+        ChromaDB.create_vectorstore(
+            vector_path=vector_path,
+            texts=texts,
+            metadatas=metadatas
+        )
         # return path
 
