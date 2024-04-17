@@ -1,4 +1,6 @@
-from langchain_community.vectorstores import Chroma
+import uuid
+
+from langchain_community.vectorstores.chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from typing import List
 # https://python.langchain.com/docs/integrations/vectorstores/chroma/
@@ -14,13 +16,20 @@ class ChromaDB:
         )
         return vectorstore
 
-    def create_vectorstore(self, vector_path: str, texts: List[str], metadatas: List[dict]):
-        vectorstore = Chroma.from_texts(
-            texts=texts,
-            embedding=OpenAIEmbeddings(),
-            persist_directory=vector_path,
-            metadatas=metadatas
-        )
-        vectorstore.persist()
-        return vectorstore
+    @staticmethod
+    def create_vectorstore(vector_path: str, texts: List[str], metadatas: List[dict]):
+        ids = [str(uuid.uuid4()) for _ in range(0, len(texts))]
+        try:
+            vectorstore = Chroma.from_texts(
+                ids=ids,
+                texts=texts,
+                embedding=OpenAIEmbeddings(),
+                persist_directory=vector_path,
+                # metadatas=metadatas
+            )
+            vectorstore.persist()
+            return vectorstore
+        except Exception as e:
+            print(e)
+
 

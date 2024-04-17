@@ -11,8 +11,13 @@ class VectorService:
     def create_vector(self, text):
         return text
 
-    def get_vector(self):
-        pass
+    def get_vector(self, workspace_id: uuid.uuid4()):
+        vector_db = ChromaDB.get_vectorstore(
+            vector_path= f'{os.getenv("VECTOR_DB_PATH_PREFIX")}{workspace_id}'
+        )
+        return vector_db
+
+
 
     # def update_vector(self, vector_id: int, new_vector: Vector):
     #     pass
@@ -31,26 +36,30 @@ class VectorService:
     def transform_to_vectors(self):
         # 조회
         movies = self.movie_service.get_movie_info()
-        for movie, synopsis_prep in movies[0:2]:
-            print("Movie ID:", movie.movieId)
-            print("Title (Korean):", movie.titleKo)
-            print("Title (English):", movie.titleEn)
-            print("Synopsis:", movie.synopsis)
-            print("Cast:", movie.cast)
-            print("Main Page URL:", movie.mainPageUrl)
-            print("Poster URL:", movie.posterUrl)
-            print("Number of Site Ratings:", movie.numOfSiteRatings)
-            print("Synopsis Preparation:", synopsis_prep.synopsis_prep)
-            print("\n")
+        metadatas = []
+        texts = []
+        for movie, synopsis_prep in movies[0:10]:
+            movie_dic = {
+                "movieId" : movie.movieId,
+                "titleKo" : movie.titleKo,
+                "titleEn" : movie.titleEn,
+                "synopsis" : movie.synopsis,
+                "cast" : movie.cast,
+                "mainPageUrl" : movie.mainPageUrl,
+                "posterUrl" : movie.posterUrl,
+                "numOfSiteRatings" : movie.numOfSiteRatings,
+            }
+            metadatas.append(movie_dic)
+            texts.append(synopsis_prep.synopsis_prep)
 
-        # vector_db 전환
         workspace_id = uuid.uuid4()
-        vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}workspace_id'
-        print(vector_path)
+        vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}{workspace_id}'
         ChromaDB.create_vectorstore(
             vector_path=vector_path,
             texts=texts,
             metadatas=metadatas
         )
-        # return path
-
+        # query = "영화 아무거나 추천해줘?"
+        # docs = vector_db.similarity_search(query)
+        # print(docs)
+        return {"workspace_id": workspace_id}

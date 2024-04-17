@@ -2,6 +2,7 @@ import os
 from dependency_injector import containers, providers
 from app.database.database import Database
 from app.repository.movie_repository import MovieRepository
+from app.service.gen_service import GenService
 from app.service.movie_service import MovieService
 # from app.repository.test_repository import TestRepository
 # from app.service.test_service import TestService
@@ -12,6 +13,7 @@ class Container(containers.DeclarativeContainer):
 
     wiring_config = containers.WiringConfiguration(modules=[
         "app.api.v1.vector_api",
+        "app.api.v1.generate_api",
         # "app.api.v1.test_api",
     ])
     db = providers.Singleton(Database, db_url=os.getenv("MYSQL_DB_URL"))
@@ -23,6 +25,6 @@ class Container(containers.DeclarativeContainer):
 
     #service
     movie_service = providers.Factory(MovieService, movie_repository=movie_repository)
-    # test_service = providers.Factory(TestService, test_repository=test_repository)
-
     vector_service = providers.Factory(VectorService, movie_service=movie_service)
+    # test_service = providers.Factory(TestService, test_repository=test_repository)
+    gen_service = providers.Factory(GenService, vector_service=vector_service)

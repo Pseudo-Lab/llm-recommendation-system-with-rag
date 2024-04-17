@@ -1,3 +1,4 @@
+import uuid
 from http.client import HTTPException
 
 from dependency_injector.wiring import inject, Provide
@@ -25,7 +26,7 @@ async def transform_to_vectors(
         vector_service: VectorService = Depends(Provide[Container.vector_service])
 ):
     try:
-        vector_service.transform_to_vectors()
+        return vector_service.transform_to_vectors()
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -33,12 +34,14 @@ async def transform_to_vectors(
 
 
 # Read - 특정 ID의 벡터 조회
-@router.get("/vector/{vector_id}", response_model=Vector)
-async def read_vector(vector_id: int):
-    pass
-    # for vector in db:
-    #     if vector.id == vector_id:
-    #         return vector
+# @router.get("/vector/{vector_id}", response_model=Vector)
+# @inject
+# async def read_vector(
+#         vector_id: uuid.uuid4(),
+#         vector_service: VectorService = Depends(Provide[Container.vector_service])
+# ):
+#     vector_service.get_vector(vector_id)
+
     # raise HTTPException(status_code=404, detail="Vector not found")
 
 # Update - 특정 ID의 벡터 업데이트
