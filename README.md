@@ -1,8 +1,13 @@
 # llm-recommendation-system-with-rag
 
 ### RUN
-```bash
+```
 docker-compose up -d
+```
+
+### Local Run
+```
+$ main.py --env local
 ```
 
 ### 📖 참고 글
