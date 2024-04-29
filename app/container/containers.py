@@ -10,13 +10,18 @@ from app.service.vector_service import VectorService
 
 
 class Container(containers.DeclarativeContainer):
-
+    config = providers.Configuration()
     wiring_config = containers.WiringConfiguration(modules=[
         "app.api.v1.vector_api",
         "app.api.v1.generate_api",
         # "app.api.v1.test_api",
     ])
-    db = providers.Singleton(Database, db_url=os.getenv("MYSQL_DB_URL"))
+    print(f'db_url {os.getenv("MYSQL_DB_URL")}')
+    db = providers.Singleton(
+        Database,
+        # db_url=os.getenv("MYSQL_DB_URL")
+        db_url=config.db_url
+    )
 
     #repository
     movie_repository = providers.Factory(MovieRepository, session_factory=db.provided.session)

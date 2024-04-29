@@ -5,21 +5,16 @@ services:
     container_name: api
     build:
       dockerfile: app/Dockerfile
+    env_file:
+      - .env.dev
     ports:
       - "8080:8080"
     user: root
     volumes:
-#      - ./:/code/
       - ./app:/code/app
       - /var/run/docker.sock:/var/run/docker.sock
-    env_file:
-      - .env
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "${ES_CPUS}"
-#          memory: "${ES_MEMORY}"
-    command: uvicorn app.main:app --host "0.0.0.0" --port 8080 --reload
+      - ./vector/chroma:/code/vector/chroma/
+    command: python main.py --host 0.0.0.0 --port 8000 --env dev --reload
 
 #  mlflow-deployment:
 #    container_name: mlflow-deployment
@@ -32,20 +27,22 @@ services:
 #    environment:
 #      OPENAI_API_KEY: ${OPENAI_API_KEY}
 #    command: mlflow deployments start-server --config-path /mlflow_deployment/config.yaml --host 0.0.0.0 --port 7001
-#
-#  mlflow-tracking:
-#    container_name: mlflow-tracking
-#    build:
-#      dockerfile: mlflow/tracking/Dockerfile
-#    ports:
-#      - "5001:5001"
-#    networks:
-#      - mlflow
-#    links:
-#      - mlflow-deployment
-#    environment:
-#      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
-#    command: mlflow server --host 0.0.0.0 --port 5001
-#networks:
-#  mlflow:
+
+  mlflow-tracking:
+    container_name: mlflow-tracking
+    build:
+      dockerfile: mlflow/tracking/Dockerfile
+    env_file:
+      - .env.dev
+    ports:
+      - "5001:5001"
+    networks:
+      - mlflow
+    links:
+      - mlflow-deployment
+    environment:
+      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
+    command: mlflow server --host 0.0.0.0 --port 5001
+networks:
+  mlflow:
 

@@ -9,3 +9,7 @@ class Vector(BaseModel):
 class Gen(BaseModel):
     workspace_id: uuid.UUID
     input: str
+
+class SimilaritySearch(BaseModel):
+    workspace_id: uuid.UUID
+    input: str

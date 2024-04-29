@@ -18,18 +18,16 @@ class ChromaDB:
 
     @staticmethod
     def create_vectorstore(vector_path: str, texts: List[str], metadatas: List[dict]):
-        ids = [str(uuid.uuid4()) for _ in range(0, len(texts))]
         try:
             vectorstore = Chroma.from_texts(
-                ids=ids,
                 texts=texts,
                 embedding=OpenAIEmbeddings(),
                 persist_directory=vector_path,
-                # metadatas=metadatas
+                metadatas=metadatas
             )
             vectorstore.persist()
             return vectorstore
         except Exception as e:
-            print(e)
+            raise ValueError(f'error: {e}')
 
 
