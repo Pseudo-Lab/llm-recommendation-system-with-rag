@@ -3,6 +3,7 @@ import uuid
 
 from app.database.chroma_db import ChromaDB
 from app.service.movie_service import MovieService
+from app.utils.data import convert_to_dicts
 
 
 class VectorService:
@@ -36,30 +37,18 @@ class VectorService:
     def transform_to_vectors(self):
         # 조회
         movies = self.movie_service.get_movie_info()
-        metadatas = []
-        texts = []
-        for movie, synopsis_prep in movies[0:10]:
-            movie_dic = {
-                "movieId" : movie.movieId,
-                "titleKo" : movie.titleKo,
-                "titleEn" : movie.titleEn,
-                "synopsis" : movie.synopsis,
-                "cast" : movie.cast,
-                "mainPageUrl" : movie.mainPageUrl,
-                "posterUrl" : movie.posterUrl,
-                "numOfSiteRatings" : movie.numOfSiteRatings,
-            }
-            metadatas.append(movie_dic)
-            texts.append(synopsis_prep.synopsis_prep)
+        metadatas, texts = convert_to_dicts(movies)
 
         workspace_id = uuid.uuid4()
         vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}{workspace_id}'
         ChromaDB.create_vectorstore(
-            vector_path=vector_path,
-            texts=texts,
-            metadatas=metadatas
+                vector_path=vector_path,
+                texts=texts,
+                metadatas=metadatas
         )
-        # query = "영화 아무거나 추천해줘?"
-        # docs = vector_db.similarity_search(query)
-        # print(docs)
         return {"workspace_id": workspace_id}
+
+    def similarity_search(self, workspace_id: uuid.UUID, text: str):
+        vs = self.get_vector(workspace_id=workspace_id)
+        docs = vs.similarity_search(text)
+        return docs

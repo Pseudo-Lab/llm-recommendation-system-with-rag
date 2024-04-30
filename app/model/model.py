@@ -1,6 +1,5 @@
 from sqlalchemy import Column, String, Boolean, Integer, TIMESTAMP, text, ForeignKey, Text, UUID
 from sqlalchemy.orm import relationship
-
 from app.database.database import Base
 
 
@@ -44,15 +43,24 @@ class DaumMovieSynopsisPrep(Base):
 
     movieId = Column(Integer, ForeignKey('daum_movies.movieId'), primary_key=True)
     synopsis_prep = Column(Text)
-
+    lead_role_etd_str = Column(Text)
+    supporting_role_etd_str = Column(Text)
+    director_etd_str = Column(Text)
     daum_movie = relationship("DaumMovie", back_populates="synopsis_prep")
 
     def __repr__(self):
-        return f"<DaumMovieSynopsisPrep(movieId={self.movieId}, synopsis_prep={self.synopsis_prep})>"
+        return f"<DaumMovieSynopsisPrep(movieId={self.movieId}, " \
+               f"synopsis_prep={self.synopsis_prep}), " \
+               f"lead_role_etd_str={self.lead_role_etd_str}," \
+               f"supporting_role_etd_str={self.supporting_role_etd_str}," \
+               f"director_etd_str={self.director_etd_str}>"
 
-    def __init__(self, movieId, synopsis_prep):
+    def __init__(self, movieId, synopsis_prep, lead_role_etd_str, supporting_role_etd_str, director_etd_str):
         self.movieId = movieId
         self.synopsis_prep = synopsis_prep
+        self.lead_role_etd_str = lead_role_etd_str
+        self.supporting_role_etd_str = supporting_role_etd_str
+        self.director_etd_str = director_etd_str
 
 
 class Workspace(Base):
@@ -64,7 +72,7 @@ class Workspace(Base):
     updated_time = Column(TIMESTAMP(timezone=True), server_default=text('now()'), onupdate=text('now()'))
 
     def __repr__(self):
-        return f"<Test(id={self.id}, vector_path={self.vector_path}, created_time={self.created_time}, updated_time={self.updated_time})>"
+        return f"<Workspace(id={self.id}, vector_path={self.vector_path}, created_time={self.created_time}, updated_time={self.updated_time})>"
 
     def __init__(self, id, vector_path, created_time=None, updated_time=None):
         self.id = id

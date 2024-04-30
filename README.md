@@ -1,8 +1,13 @@
 # llm-recommendation-system-with-rag
 
 ### RUN
-```bash
+```
 docker-compose up -d
+```
+
+### Local Run
+```
+$ main.py --env local
 ```
 
 ### 📖 참고 글
@@ -20,6 +25,10 @@ docker-compose up -d
 
 [Search, Rank, and Recommendations][link5]
 | 유저 데이터로 rerank 대상 추가
+
+
+
+
 
 ### LIST TO DO
  * 벡터 저장

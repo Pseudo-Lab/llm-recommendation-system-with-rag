@@ -12,10 +12,8 @@ class MovieRepository:
 
     def get_movie_info(self) -> List:
         with self.session_factory() as session:
-            # result = session.query(DaumMovie).join(DaumMovieSynopsisPrep).filter(
-            #     DaumMovie.movieId == DaumMovieSynopsisPrep.movieId).all()
-            result = session.query(DaumMovie, DaumMovieSynopsisPrep).outerjoin(DaumMovieSynopsisPrep).all()
-            # result = session.query(DaumMovie).all()
+            # result = session.query(DaumMovie, DaumMovieSynopsisPrep).outerjoin(DaumMovieSynopsisPrep).all()
+            result = session.query(DaumMovie, DaumMovieSynopsisPrep).outerjoin(DaumMovieSynopsisPrep).limit(50).all()
             if not result:
                 raise ValueError("empty")
             return result

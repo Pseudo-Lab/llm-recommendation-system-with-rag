@@ -1,10 +1,9 @@
 import uuid
-from http.client import HTTPException
-
+from fastapi import HTTPException
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends
 from app.container.containers import Container
-from app.model.schema.vector_schema import Vector
+from app.model.schema.vector_schema import Vector, SimilaritySearch
 from app.service.vector_service import VectorService
 router = APIRouter()
 
@@ -17,6 +16,17 @@ async def create_vector(
 ):
     return vector_service.create_vector(text)
 
+
+@router.post("/vector/similarity_search/{text}")
+@inject
+async def similarity_search(
+        request: SimilaritySearch,
+        vector_service: VectorService = Depends(Provide[Container.vector_service])
+):
+    try:
+        return vector_service.similarity_search(request.workspace_id, request.input)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 # Read - 모든 벡터 조회
