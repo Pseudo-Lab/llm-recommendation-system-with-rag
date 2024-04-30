@@ -33,6 +33,6 @@ class Container(containers.DeclarativeContainer):
 
 
     # interface
-    rag_interface = providers.Factory(OpenAIRag, vector_service=vector_service)
+    rag_template = providers.Factory(OpenAIRag, vector_service=vector_service)
 
-    gen_service = providers.Factory(GenService, vector_service=vector_service, rag=rag_interface)
+    gen_service = providers.Factory(GenService, vector_service=vector_service, rag=rag_template)

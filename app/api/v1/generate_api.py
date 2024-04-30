@@ -19,7 +19,7 @@ async def gen_response(
         gen_service: GenService = Depends(Provide[Container.gen_service])
 ):
     try:
-        return gen_service.gen_response(request.workspace_id, request.input)
+        return await gen_service.gen_response(request.workspace_id, request.input)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 

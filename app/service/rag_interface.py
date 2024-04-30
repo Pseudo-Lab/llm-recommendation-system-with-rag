@@ -2,15 +2,12 @@ import uuid
 import os
 from abc import ABC, abstractmethod
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
-from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_openai import ChatOpenAI
-
 from app.database.chroma_db import ChromaDB
 
 
-class RagInterface(ABC):
+class RagTemplate(ABC):
     def __init__(self, vector_service):
         self.vector_service = vector_service
 
@@ -20,13 +17,15 @@ class RagInterface(ABC):
                 Use the following pieces of retrieved context to answer the question. 
                 If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
 
-                \nQuestion: {question} 
+                Question: {input} 
 
-                \nContext: {context} 
+                Context: {context} 
 
-                \nAnswer:"'''
+                Answer:"'''
+        from langchain_core.prompts import PromptTemplate
+        prompt_template = PromptTemplate.from_template(prompt)
         model = self.get_model()
-        chain = self.create_chain(prompt, model, retriever)
+        chain = self.create_chain(prompt_template, model, retriever)
         if not stream:
             response = await self.gen_text(chain, input=input)
             return response
@@ -71,9 +70,9 @@ class RagInterface(ABC):
         return response
 
 
-class OpenAIRag(RagInterface):
+class OpenAIRag(RagTemplate):
     def get_model(self):
         return ChatOpenAI(
             temperature=os.getenv("LLM_TEMPERATURE"),
-            model_name=os.getenv("LLM_MODEL"),
+            model_name=os.getenv("LLM_MODEL_NAME"),
         )
