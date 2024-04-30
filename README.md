@@ -26,6 +26,10 @@ $ main.py --env local
 [Search, Rank, and Recommendations][link5]
 | 유저 데이터로 rerank 대상 추가
 
+
+
+
+
 ### LIST TO DO
  * 벡터 저장
  * 자동 배포

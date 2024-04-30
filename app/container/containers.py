@@ -4,6 +4,7 @@ from app.database.database import Database
 from app.repository.movie_repository import MovieRepository
 from app.service.gen_service import GenService
 from app.service.movie_service import MovieService
+from app.service.rag_interface import OpenAIRag
 # from app.repository.test_repository import TestRepository
 # from app.service.test_service import TestService
 from app.service.vector_service import VectorService
@@ -16,10 +17,8 @@ class Container(containers.DeclarativeContainer):
         "app.api.v1.generate_api",
         # "app.api.v1.test_api",
     ])
-    print(f'db_url {os.getenv("MYSQL_DB_URL")}')
     db = providers.Singleton(
         Database,
-        # db_url=os.getenv("MYSQL_DB_URL")
         db_url=config.db_url
     )
 
@@ -27,9 +26,13 @@ class Container(containers.DeclarativeContainer):
     movie_repository = providers.Factory(MovieRepository, session_factory=db.provided.session)
     # test_repository = providers.Factory(TestRepository, session_factory=db.provided.session)
 
-
     #service
     movie_service = providers.Factory(MovieService, movie_repository=movie_repository)
     vector_service = providers.Factory(VectorService, movie_service=movie_service)
     # test_service = providers.Factory(TestService, test_repository=test_repository)
-    gen_service = providers.Factory(GenService, vector_service=vector_service)
+
+
+    # interface
+    rag_interface = providers.Factory(OpenAIRag, vector_service=vector_service)
+
+    gen_service = providers.Factory(GenService, vector_service=vector_service, rag=rag_interface)

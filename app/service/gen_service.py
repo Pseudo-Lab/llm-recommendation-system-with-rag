@@ -2,25 +2,25 @@ import asyncio
 import os
 import uuid
 from typing import AsyncIterable, Awaitable
-
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-
+from app.service.rag_interface import RagInterface
 from app.service.vector_service import VectorService
 from langchain_openai import ChatOpenAI
 
 class GenService:
-    def __init__(self, vector_service: VectorService):
+    def __init__(self, vector_service: VectorService, rag: RagInterface):
+        self.rag = rag
         self.vector_service = vector_service
-        self.streaming_callback = AsyncIteratorCallbackHandler()
-        self.llm = ChatOpenAI(
-            temperature=0,
-            model_name=os.getenv("LLM_MODEL_NAME"),
-            streaming=True,
-            verbose=True,
-            callbacks=[self.streaming_callback]
-        )
+        # self.streaming_callback = AsyncIteratorCallbackHandler()
+        # self.llm = ChatOpenAI(
+        #     temperature=0,
+        #     model_name=os.getenv("LLM_MODEL_NAME"),
+        #     streaming=True,
+        #     verbose=True,
+        #     callbacks=[self.streaming_callback]
+        # )
 
     # @staticmethod
     async def gen_response_stream(self, input: str, workspace_id: uuid.UUID) -> AsyncIterable[str]:
