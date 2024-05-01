@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-from app.api.v1.rag_api import router as rag_router
-from app.api.v1.vector_api import router as vector_router
-from app.api.v1.generate_api import router as generate_router
+from .v1.rag_api import router as rag_router
+from .v1.vector_api import router as vector_router
+from .v1.generate_api import router as generate_router
 # from app.api.v1.model_api import router as model_router
 # from app.api.v1.test_api import router as test_router
 

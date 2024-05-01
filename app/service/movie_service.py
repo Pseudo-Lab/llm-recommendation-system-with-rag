@@ -1,4 +1,4 @@
-from app.repository.movie_repository import MovieRepository
+from repository.movie_repository import MovieRepository
 
 
 class MovieService:

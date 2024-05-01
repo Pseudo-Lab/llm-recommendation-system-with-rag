@@ -2,12 +2,13 @@ import uuid
 from fastapi import HTTPException
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends
-from app.container.containers import Container
-from app.model.schema.vector_schema import Vector, SimilaritySearch
-from app.service.vector_service import VectorService
+from container.containers import Container
+from model.schema.vector_schema import Vector, SimilaritySearch
+from service.vector_service import VectorService
+
 router = APIRouter()
 
-@router.post("/vector/{text}")
+@router.post("/{text}")
 @inject
 async def create_vector(
         # vector: Vector,
@@ -17,7 +18,7 @@ async def create_vector(
     return vector_service.create_vector(text)
 
 
-@router.post("/vector/similarity_search/{text}")
+@router.post("/similarity_search/{text}")
 @inject
 async def similarity_search(
         request: SimilaritySearch,

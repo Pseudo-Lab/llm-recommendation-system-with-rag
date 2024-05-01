@@ -5,13 +5,13 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
-from app.api.router import api_router
-from app.container.containers import Container
+from api.router import api_router
+from container.containers import Container
 
 def create_app() -> FastAPI:
+    app = FastAPI()
     container = Container()
     container.config.db_url.from_env("MYSQL_DB_URL")
-    app = FastAPI()
     # templates = Jinja2Templates(directory="app/templates")
     db = container.db()
     db.create_database()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     load_dotenv(f'../.env.{env}')
 
     db_url = os.getenv("MYSQL_DB_URL")
-    print(db_url)
+    # print(db_url)
 
     uvicorn.run(
         "main:create_app",

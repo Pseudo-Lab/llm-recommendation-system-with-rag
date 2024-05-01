@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_openai import ChatOpenAI
-from app.database.chroma_db import ChromaDB
+from database.chroma_db import ChromaDB
 
 
 class RagTemplate(ABC):
@@ -21,7 +21,7 @@ class RagTemplate(ABC):
 
                 Context: {context} 
 
-                Answer:"'''
+                Answer:'''
         from langchain_core.prompts import PromptTemplate
         prompt_template = PromptTemplate.from_template(prompt)
         model = self.get_model()

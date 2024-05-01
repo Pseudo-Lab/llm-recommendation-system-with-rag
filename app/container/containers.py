@@ -1,20 +1,19 @@
-import os
 from dependency_injector import containers, providers
-from app.database.database import Database
-from app.repository.movie_repository import MovieRepository
-from app.service.gen_service import GenService
-from app.service.movie_service import MovieService
-from app.service.rag_interface import OpenAIRag
+from database.database import Database
+from repository.movie_repository import MovieRepository
+from service.gen_service import GenService
+from service.movie_service import MovieService
+from service.rag_interface import OpenAIRag
 # from app.repository.test_repository import TestRepository
 # from app.service.test_service import TestService
-from app.service.vector_service import VectorService
+from service.vector_service import VectorService
 
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
     wiring_config = containers.WiringConfiguration(modules=[
-        "app.api.v1.vector_api",
-        "app.api.v1.generate_api",
+        "api.v1.vector_api",
+        "api.v1.generate_api",
         # "app.api.v1.test_api",
     ])
     db = providers.Singleton(

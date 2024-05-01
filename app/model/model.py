@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Boolean, Integer, TIMESTAMP, text, ForeignKey, Text, UUID
 from sqlalchemy.orm import relationship
-from app.database.database import Base
+from database.database import Base
 
 
 class DaumMovie(Base):

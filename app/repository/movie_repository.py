@@ -3,7 +3,7 @@ from typing import Callable, List
 
 from sqlalchemy.orm import Session
 
-from app.model.model import DaumMovie, DaumMovieSynopsisPrep
+from model.model import DaumMovie, DaumMovieSynopsisPrep
 
 
 class MovieRepository:

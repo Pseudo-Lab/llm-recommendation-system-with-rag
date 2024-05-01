@@ -1,14 +1,19 @@
 # llm-recommendation-system-with-rag
 
-### RUN
+### Dev Run
 ```
-docker-compose up -d
+docker-compose -f docker-compose.yml --env-file .env.dev up -d
+```
+### Dev Stop
+```
+docker-compose -f docker-compose.yml --env-file .env.dev down
 ```
 
 ### Local Run
 ```
-$ main.py --env local
+main.py --env local
 ```
+
 
 ### 📖 참고 글
 [Book Recommendation using Retrieval Augmented Generation][link1]
@@ -25,14 +30,6 @@ $ main.py --env local
 
 [Search, Rank, and Recommendations][link5]
 | 유저 데이터로 rerank 대상 추가
-
-
-
-
-
-### LIST TO DO
- * 벡터 저장
- * 자동 배포
 
 
 

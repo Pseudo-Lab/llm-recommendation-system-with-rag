@@ -1,9 +1,9 @@
 import os
 import uuid
 
-from app.database.chroma_db import ChromaDB
-from app.service.movie_service import MovieService
-from app.utils.data import convert_to_dicts
+from database.chroma_db import ChromaDB
+from service.movie_service import MovieService
+from utils.data import convert_to_dicts
 
 
 class VectorService:

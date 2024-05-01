@@ -1,12 +1,10 @@
-import uuid
-
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 from starlette.responses import StreamingResponse
 
-from app.container.containers import Container
-from app.model.schema.vector_schema import Gen
-from app.service.gen_service import GenService
+from container.containers import Container
+from model.schema.vector_schema import Gen
+from service.gen_service import GenService
 from fastapi import HTTPException
 router = APIRouter()
 
