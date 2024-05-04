@@ -4,6 +4,7 @@ import uuid
 import time
 from typing import AsyncIterable, Awaitable
 from langchain.callbacks import AsyncIteratorCallbackHandler
+from langchain.retrievers import SelfQueryRetriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from service.rag_interface import RagTemplate

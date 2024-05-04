@@ -17,45 +17,58 @@ async def create_vector(
 ):
     return vector_service.create_vector(text)
 
+@router.get(
+    path="/vector_cnt/{workspace_id}",
+    description="벡터 디비에 저장된 개수 확인"
+)
+@inject
+async def vector_cnt(
+        workspace_id: uuid.UUID,
+        vector_service: VectorService = Depends(Provide[Container.vector_service])
+):
+    try:
+        return vector_service.vector_cnt(workspace_id)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
-@router.post("/similarity_search/{text}")
+@router.post(
+    path="/similarity_search/",
+    description="유사도 기반 검색"
+)
 @inject
 async def similarity_search(
         request: SimilaritySearch,
         vector_service: VectorService = Depends(Provide[Container.vector_service])
 ):
     try:
-        return vector_service.similarity_search(request.workspace_id, request.input)
+        return vector_service.similarity_search(request.workspace_id, request.input, request.top_k)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-
-# Read - 모든 벡터 조회
-@router.get("/")
+@router.post(
+    path="/similarity_search/self_query"
+)
 @inject
-async def transform_to_vectors(
+async def gen_response_with_self_query(
+        request: SimilaritySearch,
         vector_service: VectorService = Depends(Provide[Container.vector_service])
 ):
     try:
-        return vector_service.transform_to_vectors()
+        return await vector_service.similarity_search_with_self_query(request.workspace_id, request.input)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
-
-
-# Read - 특정 ID의 벡터 조회
-# @router.get("/vector/{vector_id}", response_model=Vector)
+# @router.get("/")
 # @inject
-# async def read_vector(
-#         vector_id: uuid.uuid4(),
+# async def transform_to_vectors(
 #         vector_service: VectorService = Depends(Provide[Container.vector_service])
 # ):
-#     vector_service.get_vector(vector_id)
+#     try:
+#         return vector_service.transform_to_vectors()
+#     except Exception as e:
+#         raise HTTPException(status_code=404, detail=str(e))
 
-    # raise HTTPException(status_code=404, detail="Vector not found")
-
-# Update - 특정 ID의 벡터 업데이트
 @router.put("/vector/{vector_id}", response_model=Vector)
 async def update_vector(vector_id: int, vector: Vector):
     pass

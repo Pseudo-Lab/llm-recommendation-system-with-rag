@@ -1,6 +1,11 @@
 import os
 import uuid
+from tqdm import tqdm
+from langchain.chains.query_constructor.base import get_query_constructor_prompt, StructuredQueryOutputParser
 
+from utils.self_query import metadata_field_info
+from langchain.retrievers import SelfQueryRetriever
+from langchain_openai import ChatOpenAI
 from database.chroma_db import ChromaDB
 from service.movie_service import MovieService
 from utils.data import convert_to_dicts
@@ -41,14 +46,53 @@ class VectorService:
 
         workspace_id = uuid.uuid4()
         vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}{workspace_id}'
-        ChromaDB.create_vectorstore(
-                vector_path=vector_path,
-                texts=texts,
-                metadatas=metadatas
-        )
+        vs = ChromaDB.get_vectorstore(vector_path)
+
+        for i in tqdm(range(len(metadatas)//1000 + 1)):
+            s = i * 1000
+            e = min((i+1) * 1000, len(metadatas))
+            vs.add_texts(
+                texts=texts[s:e],
+                metadatas=metadatas[s:e]
+            )
         return {"workspace_id": workspace_id}
 
-    def similarity_search(self, workspace_id: uuid.UUID, text: str):
+    def similarity_search(self, workspace_id: uuid.UUID, text: str, k:int):
         vs = self.get_vector(workspace_id=workspace_id)
-        docs = vs.similarity_search(text)
+        docs = vs.similarity_search_with_score(text, k=k)
         return docs
+
+    async def similarity_search_with_self_query(self, workspace_id, input):
+        document_content_description = "질의와 관련된 영화를 추천해줘"
+        vs = self.get_vector(workspace_id=workspace_id)
+
+        model = ChatOpenAI(
+            temperature=0,
+            model_name=os.getenv("LLM_MODEL_NAME"),
+            verbose=True
+        )
+        prompt = get_query_constructor_prompt(
+            document_content_description,
+            metadata_field_info,
+        )
+        output_parser = StructuredQueryOutputParser.from_components()
+        query_constructor = prompt | model | output_parser
+        response = await query_constructor.ainvoke(input)
+        print(prompt.format(query=input))
+        print(response)
+        # retriever = SelfQueryRetriever.from_llm(
+        #     model,
+        #     vs,
+        #     document_content_description,
+        #     metadata_field_info,
+        #     enable_limit=True,
+        #     search_kwargs={"k": 2}
+        # )
+        # return await retriever.ainvoke(input)
+
+    def vector_cnt(self, workspace_id):
+        vs = self.get_vector(workspace_id)
+        vector_cnt = len(vs)
+        return f'{vector_cnt} vector'
+
+

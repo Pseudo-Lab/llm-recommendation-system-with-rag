@@ -6,7 +6,9 @@ from container.containers import Container
 from model.schema.vector_schema import Gen
 from service.gen_service import GenService
 from fastapi import HTTPException
+
 router = APIRouter()
+
 
 @router.post(
     path="/response"
@@ -21,6 +23,10 @@ async def gen_response(
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+
+
+
+
 @router.post(
     path="/response/stream"
 )
@@ -30,5 +36,6 @@ async def gen_response_stream(
         gen_service: GenService = Depends(Provide[Container.gen_service])
 ):
     # return StreamingResponse(content=GenService.gen_response_stream(input=request.input), media_type="text/event-stream")
-    return StreamingResponse(content=gen_service.gen_response_stream(input=request.input, workspace_id=request.workspace_id),
-                             media_type="text/event-stream")
+    return StreamingResponse(
+        content=gen_service.gen_response_stream(input=request.input, workspace_id=request.workspace_id),
+        media_type="text/event-stream")
