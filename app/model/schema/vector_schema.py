@@ -10,7 +10,7 @@ class Gen(BaseModel):
     workspace_id: uuid.UUID
     input: str
 
-class SimilaritySearch(BaseModel):
+class Search(BaseModel):
     workspace_id: uuid.UUID
     input: str
     top_k: int

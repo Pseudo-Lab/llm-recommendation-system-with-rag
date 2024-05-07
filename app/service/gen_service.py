@@ -8,14 +8,11 @@ from langchain.retrievers import SelfQueryRetriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from service.rag_interface import RagTemplate
-from service.vector_service import VectorService
 from langchain_openai import ChatOpenAI
-
 from utils.timer import atimer
 
-
 class GenService:
-    def __init__(self, vector_service: VectorService, rag: RagTemplate):
+    def __init__(self, vector_service, rag: RagTemplate):
         self.rag = rag
         self.vector_service = vector_service
 

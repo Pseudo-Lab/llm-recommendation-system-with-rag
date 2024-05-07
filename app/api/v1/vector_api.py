@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends
 from container.containers import Container
-from model.schema.vector_schema import Vector, SimilaritySearch
-from service.vector_service import VectorService
+from model.schema.vector_schema import Vector
+from vector.ChromaVector import ChromaVector
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ router = APIRouter()
 async def create_vector(
         # vector: Vector,
         text: str,
-        vector_service: VectorService = Depends(Provide[Container.vector_service])
+        vector_service: ChromaVector = Depends(Provide[Container.vector])
 ):
     return vector_service.create_vector(text)
 
@@ -24,37 +24,10 @@ async def create_vector(
 @inject
 async def vector_cnt(
         workspace_id: uuid.UUID,
-        vector_service: VectorService = Depends(Provide[Container.vector_service])
+        vector_service: ChromaVector = Depends(Provide[Container.vector])
 ):
     try:
         return vector_service.vector_cnt(workspace_id)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-@router.post(
-    path="/similarity_search/",
-    description="유사도 기반 검색"
-)
-@inject
-async def similarity_search(
-        request: SimilaritySearch,
-        vector_service: VectorService = Depends(Provide[Container.vector_service])
-):
-    try:
-        return vector_service.similarity_search(request.workspace_id, request.input, request.top_k)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-@router.post(
-    path="/similarity_search/self_query"
-)
-@inject
-async def gen_response_with_self_query(
-        request: SimilaritySearch,
-        vector_service: VectorService = Depends(Provide[Container.vector_service])
-):
-    try:
-        return await vector_service.similarity_search_with_self_query(request.workspace_id, request.input)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
