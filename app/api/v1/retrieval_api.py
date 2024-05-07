@@ -18,7 +18,7 @@ async def similarity_search(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
-        return retrieval_service.similarity_search(request.workspace_id, request.input, request.top_k)
+        return await retrieval_service.similarity_search(request.workspace_id, request.input, request.top_k)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
