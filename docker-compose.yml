@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  api:
+  fastapi:
     container_name: api
     build:
       dockerfile: app/Dockerfile
@@ -15,6 +15,42 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./vector/chroma:/vector/chroma/
     command: python main.py --host 0.0.0.0 --port 8989 --env dev --reload
+
+  elasticsearch:
+    container_name: vector_db
+    image: elasticsearch:7.10.1
+    env_file:
+      - .env.dev
+    ports:
+      - ${ELASTICSEARCH_PORT1}:${ELASTICSEARCH_PORT1}
+      - ${ELASTICSEARCH_PORT2}:${ELASTICSEARCH_PORT2}
+    environment:
+      - node.name=es
+      - discovery.type=single-node
+      - discovery.seed_hosts=es
+      - ELASTIC_PASSWORD=movie
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.http.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.license.self_generated.type=basic
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt http://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    volumes:
+      - ./es-data:/es/data
+      - ./certs:/usr/share/elasticsearch/config/certs
+
+
+
 
 #  mlflow-deployment:
 #    container_name: mlflow-deployment
@@ -33,7 +69,7 @@ services:
 #    build:
 #      dockerfile: mlflow/tracking/Dockerfile
 #    env_file:
-#      - .env.dev
+#      - .env.local
 #    ports:
 #      - "5001:5001"
 #    networks:
