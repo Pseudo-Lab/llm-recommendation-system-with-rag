@@ -4,12 +4,13 @@ from abc import ABC, abstractmethod
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_openai import ChatOpenAI
-from app.database.chroma_db import ChromaDB
+from database.chroma_db import ChromaDB
+from vector.vector import VectorInterface
 
 
 class RagTemplate(ABC):
-    def __init__(self, vector_service):
-        self.vector_service = vector_service
+    def __init__(self, vector: VectorInterface):
+        self.vector = vector
 
     async def run(self, workspace_id: uuid.UUID, top_k: int, threshold: float, input: str, stream: bool = False):
         retriever = self.set_retriever(workspace_id=workspace_id, top_k=top_k, threshold=threshold)
@@ -17,11 +18,11 @@ class RagTemplate(ABC):
                 Use the following pieces of retrieved context to answer the question. 
                 If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
 
+                Context: {context}
+                 
                 Question: {input} 
+                Answer:'''
 
-                Context: {context} 
-
-                Answer:"'''
         from langchain_core.prompts import PromptTemplate
         prompt_template = PromptTemplate.from_template(prompt)
         model = self.get_model()

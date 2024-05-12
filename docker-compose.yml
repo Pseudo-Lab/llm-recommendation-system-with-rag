@@ -1,20 +1,55 @@
 version: "3.9"
 
 services:
-  api:
+  fastapi:
     container_name: api
     build:
       dockerfile: app/Dockerfile
     env_file:
       - .env.dev
     ports:
-      - "8080:8080"
-    user: root
+      - "8989:8989"
+#    user: root
     volumes:
-      - ./app:/code/app
+      - ./app:/app
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./vector/chroma:/code/vector/chroma/
-    command: python main.py --host 0.0.0.0 --port 8000 --env dev --reload
+      - ./vector/chroma:/vector/chroma/
+    command: python main.py --host 0.0.0.0 --port 8989 --env dev --reload
+
+  elasticsearch:
+    container_name: vector_db
+#    image: elasticsearch:7.10.1
+    image: elasticsearch:8.8.0
+    env_file:
+      - .env.dev
+    ports:
+      - ${ES_PORT1}:${ES_PORT1}
+      - ${ES_PORT2}:${ES_PORT2}
+    environment:
+      - node.name=es
+      - discovery.type=single-node
+      - discovery.seed_hosts=es
+      - ELASTIC_PASSWORD=movie
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.http.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.license.self_generated.type=basic
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt http://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    volumes:
+      #TODO 볼륨 권한이 root로 설정되어 chown으로 해결하였으나 자동으로 권한을 변경하도록 수정 필요
+      - ./es-data:/usr/share/elasticsearch/data
+      - ./certs:/usr/share/elasticsearch/config/certs
 
 #  mlflow-deployment:
 #    container_name: mlflow-deployment
@@ -28,21 +63,21 @@ services:
 #      OPENAI_API_KEY: ${OPENAI_API_KEY}
 #    command: mlflow deployments start-server --config-path /mlflow_deployment/config.yaml --host 0.0.0.0 --port 7001
 
-  mlflow-tracking:
-    container_name: mlflow-tracking
-    build:
-      dockerfile: mlflow/tracking/Dockerfile
-    env_file:
-      - .env.dev
-    ports:
-      - "5001:5001"
-    networks:
-      - mlflow
-    links:
-      - mlflow-deployment
-    environment:
-      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
-    command: mlflow server --host 0.0.0.0 --port 5001
-networks:
-  mlflow:
+#  mlflow-tracking:
+#    container_name: mlflow-tracking
+#    build:
+#      dockerfile: mlflow/tracking/Dockerfile
+#    env_file:
+#      - .env.local
+#    ports:
+#      - "5001:5001"
+#    networks:
+#      - mlflow
+#    links:
+#      - mlflow-deployment
+#    environment:
+#      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
+#    command: mlflow server --host 0.0.0.0 --port 5001
+#networks:
+#  mlflow:
 
