@@ -5,7 +5,9 @@ from service.gen_service import GenService
 from service.movie_service import MovieService
 from service.rag_interface import OpenAIRag
 from service.retrieval_service import RetrievalService
-from vector.ChromaVector import ChromaVector
+from vector.chroma import ChromaVector
+from vector.elasticsearch import Elasticsearch
+from vector.vector import VectorInterface
 
 
 class Container(containers.DeclarativeContainer):
@@ -21,14 +23,15 @@ class Container(containers.DeclarativeContainer):
         db_url=config.db_url
     )
 
-    # vector
-    vector = providers.Factory(ChromaVector)
-
     #repository
     movie_repository = providers.Factory(MovieRepository, session_factory=db.provided.session)
 
     #service
     movie_service = providers.Factory(MovieService, movie_repository=movie_repository)
+
+    # vector
+    vector = providers.Factory(Elasticsearch, movie_service=movie_service)
+
     retrieval_service = providers.Factory(RetrievalService, vector=vector)
 
     # interface

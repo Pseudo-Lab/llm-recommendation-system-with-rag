@@ -1,60 +1,60 @@
+import logging
 import uuid
 import os
 import json
 from typing import Optional, Sequence
 
-from langchain.chains.query_constructor.base import StructuredQueryOutputParser
+from langchain.chains.query_constructor.base import StructuredQueryOutputParser, get_query_constructor_prompt, \
+    load_query_constructor_runnable
 from langchain.chains.query_constructor.ir import Comparator, Operator
 from langchain.chains.query_constructor.prompt import DEFAULT_PREFIX, DEFAULT_SUFFIX, EXAMPLES_WITH_LIMIT, \
     EXAMPLE_PROMPT, DEFAULT_EXAMPLES, DEFAULT_SCHEMA_PROMPT, SCHEMA_WITH_LIMIT_PROMPT
 from langchain.retrievers import SelfQueryRetriever
-from langchain.retrievers.self_query.chroma import ChromaTranslator
+from langchain.retrievers.self_query.elasticsearch import ElasticsearchTranslator
 from langchain_core.prompts import FewShotPromptTemplate, BasePromptTemplate
 from langchain_openai import ChatOpenAI
 
-from utils.self_query import metadata_field_info
+from utils.prompts import MOVIE_DATA_SOURCE, MOVIE_DEFAULT_EXAMPLES
+from utils.self_query_meta import metadata_field_info
+from vector.vector import VectorInterface
 
 
 class RetrievalService:
-    def __init__(self, vector):
+    def __init__(self, vector: VectorInterface):
         self.vector = vector
 
     async def similarity_search(self, workspace_id: uuid.UUID, input: str, k: int):
-        vs = self.vector.get_vector(workspace_id=workspace_id)
+        vs = self.vector.get_vector_store(workspace_id=workspace_id)
         docs = vs.similarity_search_with_score(input, k=k)
         return docs
 
+    async def ensemble_search(self, workspace_id, input, top_k):
+        #TODO: bm25 + dense + self-query
+        pass
+
     async def similarity_search_with_self_query(self, workspace_id: uuid.UUID, input: str):
         # https://github.com/langchain-ai/langchain/blob/master/cookbook/self_query_hotel_search.ipynb
-        document_content_description = "영화 정보"
-        vs = self.vector.get_vector(workspace_id=workspace_id)
-
+        document_content_description = "영화를 추천해주세요."
         model = ChatOpenAI(
             temperature=0,
             model_name=os.getenv("LLM_MODEL_NAME"),
             verbose=True
         )
-
-        # prompt = get_query_constructor_prompt(
-        #     document_content_description,
-        #     metadata_field_info,
-        # )
+        # 자연어 질의 -> filter query
         prompt = self.custom_query_constructor_prompt(
             document_content_description,
             metadata_field_info,
         )
-        print(prompt.format(query=input))
+
         output_parser = StructuredQueryOutputParser.from_components()
         query_constructor = prompt | model | output_parser
-        docs = query_constructor.invoke({"query": input})
-        # retriever = SelfQueryRetriever(
-        #     query_constructor=query_constructor,  # 이전에 생성한 쿼리 생성기
-        #     vectorstore=vs,  # 벡터 저장소를 지정
-        #     structured_query_translator=ChromaTranslator()
-        # )
-        #
-        # docs = retriever.ainvoke(input)
-        # print(docs)
+        vs = self.vector.get_vector_store(workspace_id=workspace_id)
+        retriever = SelfQueryRetriever(
+            query_constructor=query_constructor,  # 이전에 생성한 쿼리 생성기
+            vectorstore=vs,  # 벡터 저장소를 지정
+            structured_query_translator=ElasticsearchTranslator()
+        )
+        docs = retriever.invoke(input)
         return docs
 
         # response = await query_constructor.ainvoke(input)
@@ -96,7 +96,8 @@ class RetrievalService:
             allowed_operators=" | ".join(allowed_operators),
         )
         examples = examples or (
-            EXAMPLES_WITH_LIMIT if enable_limit else DEFAULT_EXAMPLES
+            # EXAMPLES_WITH_LIMIT if enable_limit else DEFAULT_EXAMPLES
+            EXAMPLES_WITH_LIMIT if enable_limit else MOVIE_DEFAULT_EXAMPLES
         )
         example_prompt = EXAMPLE_PROMPT
         prefix = DEFAULT_PREFIX.format(schema=schema)
@@ -110,3 +111,4 @@ class RetrievalService:
             suffix=suffix,
             prefix=prefix,
         )
+

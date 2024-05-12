@@ -23,6 +23,20 @@ async def similarity_search(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post(
+    path="/ensemble_search/",
+    description="유사도 기반 + key word 검색"
+)
+@inject
+async def ensemble_search(
+        request: Search,
+        retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
+):
+    try:
+        return await retrieval_service.ensemble_search(request.workspace_id, request.input, request.top_k)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.post(
     path="/similarity_search/self_query",
     description="셀프 쿼리 기반 검색"
 

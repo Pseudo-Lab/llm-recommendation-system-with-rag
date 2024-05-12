@@ -18,12 +18,13 @@ services:
 
   elasticsearch:
     container_name: vector_db
-    image: elasticsearch:7.10.1
+#    image: elasticsearch:7.10.1
+    image: elasticsearch:8.8.0
     env_file:
       - .env.dev
     ports:
-      - ${ELASTICSEARCH_PORT1}:${ELASTICSEARCH_PORT1}
-      - ${ELASTICSEARCH_PORT2}:${ELASTICSEARCH_PORT2}
+      - ${ES_PORT1}:${ES_PORT1}
+      - ${ES_PORT2}:${ES_PORT2}
     environment:
       - node.name=es
       - discovery.type=single-node
@@ -46,11 +47,9 @@ services:
       timeout: 10s
       retries: 120
     volumes:
-      - ./es-data:/es/data
+      #TODO 볼륨 권한이 root로 설정되어 chown으로 해결하였으나 자동으로 권한을 변경하도록 수정 필요
+      - ./es-data:/usr/share/elasticsearch/data
       - ./certs:/usr/share/elasticsearch/config/certs
-
-
-
 
 #  mlflow-deployment:
 #    container_name: mlflow-deployment

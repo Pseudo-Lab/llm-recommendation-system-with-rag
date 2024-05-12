@@ -4,7 +4,7 @@ from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends
 from container.containers import Container
 from model.schema.vector_schema import Vector
-from vector.ChromaVector import ChromaVector
+from vector.vector import VectorInterface
 
 router = APIRouter()
 
@@ -13,18 +13,18 @@ router = APIRouter()
 async def create_vector(
         # vector: Vector,
         text: str,
-        vector_service: ChromaVector = Depends(Provide[Container.vector])
+        vector_service: VectorInterface = Depends(Provide[Container.vector])
 ):
     return vector_service.create_vector(text)
 
 @router.get(
-    path="/vector_cnt/{workspace_id}",
+    path="/cnt/{workspace_id}",
     description="벡터 디비에 저장된 개수 확인"
 )
 @inject
 async def vector_cnt(
         workspace_id: uuid.UUID,
-        vector_service: ChromaVector = Depends(Provide[Container.vector])
+        vector_service: VectorInterface = Depends(Provide[Container.vector])
 ):
     try:
         return vector_service.vector_cnt(workspace_id)
@@ -32,17 +32,17 @@ async def vector_cnt(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-# @router.get("/")
-# @inject
-# async def transform_to_vectors(
-#         vector_service: VectorService = Depends(Provide[Container.vector_service])
-# ):
-#     try:
-#         return vector_service.transform_to_vectors()
-#     except Exception as e:
-#         raise HTTPException(status_code=404, detail=str(e))
+@router.get("/")
+@inject
+async def transform_to_vectors(
+        vector_service: VectorInterface = Depends(Provide[Container.vector])
+):
+    try:
+        return await vector_service.transform_to_vectors()
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
-@router.put("/vector/{vector_id}", response_model=Vector)
+@router.put("/{vector_id}", response_model=Vector)
 async def update_vector(vector_id: int, vector: Vector):
     pass
     # for v in db:
@@ -52,7 +52,7 @@ async def update_vector(vector_id: int, vector: Vector):
     # raise HTTPException(status_code=404, detail="Vector not found")
 
 # Delete - 특정 ID의 벡터 삭제
-@router.delete("/vector/{vector_id}", response_model=Vector)
+@router.delete("/{vector_id}", response_model=Vector)
 async def delete_vector(vector_id: int):
     pass
     # for i, vector in enumerate(db):
