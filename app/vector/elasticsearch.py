@@ -17,16 +17,22 @@ from langchain_core.documents import Document
 
 class Elasticsearch(VectorInterface):
     ES_URL = os.getenv("ES_URL")
-    def create_vector(self, workspace_id: uuid.UUID, docs: List[Document]):
+    # ES_URL = "http://127.0.0.1:9200"
+    async def create_vector(self, workspace_id: uuid.UUID, docs: List[Document], offset=100):
         index_name = f"{workspace_id}"
-        vs = ElasticsearchStore.from_documents(
-            documents=docs,
+        vs = ElasticsearchStore(
             es_url=self.ES_URL,
             index_name=index_name,
             embedding=OpenAIEmbeddings(),
             # es_user="elastic",
             es_password="movie"
         )
+        for i in tqdm(range(len(docs) // offset + 1)):
+            s = i * offset
+            e = min((i + 1) * offset, len(docs))
+            await vs.aadd_documents(
+                documents=docs[s:e]
+            )
         vs.client.indices.refresh(index=index_name)
         return vs
 
@@ -60,7 +66,7 @@ class Elasticsearch(VectorInterface):
         docs = convert_to_dicts(movies)
 
         workspace_id = uuid.uuid4()
-        self.create_vector(workspace_id=workspace_id, docs=docs)
+        await self.create_vector(workspace_id=workspace_id, docs=docs)
         # vs = self.get_vector_store(workspace_id=workspace_id)
         # print(len(docs))
         # result = await vs.aadd_documents(docs)

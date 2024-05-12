@@ -24,9 +24,6 @@ async def gen_response(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-
-
-
 @router.post(
     path="/response/stream"
 )

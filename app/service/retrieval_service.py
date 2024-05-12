@@ -54,7 +54,7 @@ class RetrievalService:
             vectorstore=vs,  # 벡터 저장소를 지정
             structured_query_translator=ElasticsearchTranslator()
         )
-        docs = retriever.invoke(input)
+        docs = await retriever.ainvoke(input)
         return docs
 
         # response = await query_constructor.ainvoke(input)

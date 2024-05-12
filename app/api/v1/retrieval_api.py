@@ -7,7 +7,6 @@ from service.retrieval_service import RetrievalService
 
 router = APIRouter()
 
-
 @router.post(
     path="/similarity_search/",
     description="유사도 기반 검색"

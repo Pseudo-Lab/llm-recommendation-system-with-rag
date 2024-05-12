@@ -6,7 +6,7 @@ def convert_to_dicts(movies):
         return []
     else:
         doc = []
-        for movie, synopsis_prep in movies[0:100]:
+        for movie, synopsis_prep in movies:
             movie_dic = {
                 "movieId": movie.movieId,
                 "titleKo": movie.titleKo or "",

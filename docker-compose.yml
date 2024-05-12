@@ -28,7 +28,7 @@ services:
     environment:
       - node.name=es
       - discovery.type=single-node
-      - discovery.seed_hosts=es
+      - discovery.seed_hosts=elasticsearch
       - ELASTIC_PASSWORD=movie
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false

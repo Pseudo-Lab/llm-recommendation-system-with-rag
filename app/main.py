@@ -53,7 +53,9 @@ if __name__ == "__main__":
     load_dotenv(f'../.env.{env}')
 
     db_url = os.getenv("MYSQL_DB_URL")
-    # print(db_url)
+    vector_db_url = os.getenv("ES_URL")
+    print(f'db connected : {db_url}')
+    print(f'vector db connected : {vector_db_url}')
 
     uvicorn.run(
         "main:create_app",
