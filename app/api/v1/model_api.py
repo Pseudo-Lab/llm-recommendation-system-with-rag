@@ -17,7 +17,7 @@
 #     #         'model':model,
 #     #         'tracking_uri': "http://mlflow-tracking:5001",
 #     #     },
-#     #     # command=[f'pip install mlflow', f'mlflow models serve --model-uri models:/{model}/1 --port {port}'],
+#     #     # command=[f'pip install ops', f'ops models serve --model-uri models:/{model}/1 --port {port}'],
 #     #     detach=True
 #     # )
 #     docker_client.images.pull('ubuntu')

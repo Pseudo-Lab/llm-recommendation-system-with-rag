@@ -16,11 +16,11 @@ from langchain_openai import ChatOpenAI
 
 from utils.prompts import MOVIE_DATA_SOURCE, MOVIE_DEFAULT_EXAMPLES
 from utils.self_query_meta import metadata_field_info
-from vector.vector import VectorInterface
+from vector.vector_store import VectorStoreInterface
 
 
 class RetrievalService:
-    def __init__(self, vector: VectorInterface):
+    def __init__(self, vector: VectorStoreInterface):
         self.vector = vector
 
     async def similarity_search(self, workspace_id: uuid.UUID, input: str, k: int):

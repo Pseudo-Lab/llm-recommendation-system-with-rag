@@ -4,4 +4,4 @@ RUN pip install mlflow[genai]
 
 WORKDIR /mlflow_deployment
 
-COPY /mlflow/deployment/config.yaml /mlflow_deployment/config.yaml
+COPY /ops/deployment/config.yaml /mlflow_deployment/config.yaml

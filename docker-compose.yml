@@ -6,7 +6,7 @@ services:
     build:
       dockerfile: app/Dockerfile
     env_file:
-      - .env.dev
+      - .env.local
     ports:
       - "8989:8989"
 #    user: root
@@ -21,7 +21,7 @@ services:
 #    image: elasticsearch:7.10.1
     image: elasticsearch:8.8.0
     env_file:
-      - .env.dev
+      - .env.local
     ports:
       - ${ES_PORT1}:${ES_PORT1}
       - ${ES_PORT2}:${ES_PORT2}
@@ -51,33 +51,35 @@ services:
       - ./es-data:/usr/share/elasticsearch/data
       - ./certs:/usr/share/elasticsearch/config/certs
 
-#  mlflow-deployment:
-#    container_name: mlflow-deployment
+#  ops-deployment:
+#    container_name: ops-deployment
 #    build:
-#      dockerfile: mlflow/deployment/Dockerfile
+#      dockerfile: ops/deployment/Dockerfile
 #    ports:
 #      - "7001:7001"
 #    networks:
-#      - mlflow
+#      - ops
 #    environment:
 #      OPENAI_API_KEY: ${OPENAI_API_KEY}
-#    command: mlflow deployments start-server --config-path /mlflow_deployment/config.yaml --host 0.0.0.0 --port 7001
+#    command: ops deployments start-server --config-path /mlflow_deployment/config.yaml --host 0.0.0.0 --port 7001
 
-#  mlflow-tracking:
-#    container_name: mlflow-tracking
-#    build:
-#      dockerfile: mlflow/tracking/Dockerfile
-#    env_file:
-#      - .env.local
-#    ports:
-#      - "5001:5001"
+  mlflow-tracking:
+    container_name: mlflow-tracking
+    build:
+      dockerfile: ops/tracking/Dockerfile
+    env_file:
+      - .env.local
+    ports:
+      - "5001:5001"
 #    networks:
-#      - mlflow
+#      - ops
 #    links:
-#      - mlflow-deployment
-#    environment:
-#      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
-#    command: mlflow server --host 0.0.0.0 --port 5001
+#      - ops-deployment
+    volumes:
+      - ./mlruns:/mlruns
+    environment:
+      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
+    command: mlflow server --host 0.0.0.0 --port 5001
 #networks:
-#  mlflow:
+#  ops:
 

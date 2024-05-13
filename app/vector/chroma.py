@@ -3,10 +3,10 @@ import uuid
 from tqdm import tqdm
 from database.chroma_db import ChromaDB
 from utils.data import convert_to_dicts
-from vector.vector import VectorInterface
+from vector.vector_store import VectorStoreInterface
 
 
-class ChromaVector(VectorInterface):
+class ChromaVector(VectorStoreInterface):
     def create_vector(self, text):
         return text
 

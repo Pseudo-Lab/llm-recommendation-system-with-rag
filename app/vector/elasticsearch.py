@@ -1,7 +1,6 @@
 import uuid
 import os
 from typing import List
-from dependency_injector.wiring import inject, Provide
 from langchain_elasticsearch import ElasticsearchStore
 from langchain_community.retrievers import (
     ElasticSearchBM25Retriever,
@@ -11,11 +10,11 @@ from tqdm import tqdm
 
 from service.movie_service import MovieService
 from utils.data import convert_to_dicts
-from vector.vector import VectorInterface
+from vector.vector_store import VectorStoreInterface
 from langchain_core.documents import Document
 
 
-class Elasticsearch(VectorInterface):
+class Elasticsearch(VectorStoreInterface):
     ES_URL = os.getenv("ES_URL")
     # ES_URL = "http://127.0.0.1:9200"
     async def create_vector(self, workspace_id: uuid.UUID, docs: List[Document], offset=100):

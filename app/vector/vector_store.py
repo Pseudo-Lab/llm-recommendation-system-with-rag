@@ -4,7 +4,7 @@ import uuid
 from langchain_core.vectorstores import VectorStore
 
 
-class VectorInterface(metaclass=ABCMeta):
+class VectorStoreInterface(metaclass=ABCMeta):
     def __init__(self, movie_service):
         self.movie_service = movie_service
 

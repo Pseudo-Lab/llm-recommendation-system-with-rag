@@ -1,39 +1,53 @@
 import uuid
 import os
+import mlflow
 from abc import ABC, abstractmethod
+
+from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_openai import ChatOpenAI
 from database.chroma_db import ChromaDB
-from vector.vector import VectorInterface
+from vector.vector_store import VectorStoreInterface
+from langchain_core.prompts import PromptTemplate
 
 
 class RagTemplate(ABC):
-    def __init__(self, vector: VectorInterface):
-        self.vector = vector
+    def __init__(self, vector_store: VectorStoreInterface):
+        self.vector_store = vector_store
 
     async def run(self, workspace_id: uuid.UUID, top_k: int, threshold: float, input: str, stream: bool = False):
         retriever = self.set_retriever(workspace_id=workspace_id, top_k=top_k, threshold=threshold)
-        prompt = '''template="You are an assistant for question-answering tasks. 
-                Use the following pieces of retrieved context to answer the question. 
-                If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+        prompt = '''\
+        You are an assistant for question-answering tasks. 
+        Use the following pieces of retrieved context to answer the question. 
+        If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
 
-                Context: {context}
+        Context: {context}
                  
-                Question: {input} 
-                Answer:'''
+        Question: {input} 
+        Answer:
+        '''
 
-        from langchain_core.prompts import PromptTemplate
         prompt_template = PromptTemplate.from_template(prompt)
         model = self.get_model()
         chain = self.create_chain(prompt_template, model, retriever)
+        retrievalQA = RetrievalQA.from_llm(llm=model, retriever=retriever)
+
+        mlflow.set_experiment(str(workspace_id))
+        with mlflow.start_run():
+            model_info = mlflow.langchain.log_model(
+                retrievalQA,
+                artifact_path="langchain_test",
+            )
+
         if not stream:
             response = await self.gen_text(chain, input=input)
             return response
 
     def set_retriever(self, workspace_id: uuid.UUID, top_k: int, threshold: float):
-        vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}{workspace_id}'
-        vs = ChromaDB.get_vectorstore(vector_path)
+        # vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}{workspace_id}'
+        vs = self.vector_store.get_vector_store(workspace_id=workspace_id)
         retriever = vs.as_retriever(
             search_type="similarity_score_threshold",
             search_kwargs={"k": top_k, "score_threshold": threshold})

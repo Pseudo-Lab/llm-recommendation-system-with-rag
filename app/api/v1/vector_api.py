@@ -4,7 +4,7 @@ from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends
 from container.containers import Container
 from model.schema.vector_schema import Vector
-from vector.vector import VectorInterface
+from vector.vector_store import VectorStoreInterface
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ router = APIRouter()
 async def create_vector(
         # vector: Vector,
         text: str,
-        vector_service: VectorInterface = Depends(Provide[Container.vector])
+        vector_service: VectorStoreInterface = Depends(Provide[Container.vector_store])
 ):
     return vector_service.create_vector(text)
 
@@ -24,7 +24,7 @@ async def create_vector(
 @inject
 async def vector_cnt(
         workspace_id: uuid.UUID,
-        vector_service: VectorInterface = Depends(Provide[Container.vector])
+        vector_service: VectorStoreInterface = Depends(Provide[Container.vector_store])
 ):
     try:
         return vector_service.vector_cnt(workspace_id)
@@ -35,7 +35,7 @@ async def vector_cnt(
 @router.get("/")
 @inject
 async def transform_to_vectors(
-        vector_service: VectorInterface = Depends(Provide[Container.vector])
+        vector_service: VectorStoreInterface = Depends(Provide[Container.vector_store])
 ):
     try:
         return await vector_service.transform_to_vectors()
