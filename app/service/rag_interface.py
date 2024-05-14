@@ -32,14 +32,6 @@ class RagTemplate(ABC):
         prompt_template = PromptTemplate.from_template(prompt)
         model = self.get_model()
         chain = self.create_chain(prompt_template, model, retriever)
-        retrievalQA = RetrievalQA.from_llm(llm=model, retriever=retriever)
-
-        mlflow.set_experiment(str(workspace_id))
-        with mlflow.start_run():
-            model_info = mlflow.langchain.log_model(
-                retrievalQA,
-                artifact_path="langchain_test",
-            )
 
         if not stream:
             response = await self.gen_text(chain, input=input)
