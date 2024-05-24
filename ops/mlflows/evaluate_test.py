@@ -49,4 +49,5 @@ if __name__ == "__main__":
             targets="ground_truth_context",
             predictions="retrieved_context",
             evaluators="default",
+            evaluator_config={"retriever_k": 1}
         )

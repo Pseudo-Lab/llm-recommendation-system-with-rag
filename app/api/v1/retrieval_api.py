@@ -46,6 +46,6 @@ async def similarity_search_with_self_query(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
-        return await retrieval_service.similarity_search_with_self_query(request.workspace_id, request.input)
+        return await retrieval_service.similarity_search_with_self_query(request.workspace_id, request.input, request.top_k)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))

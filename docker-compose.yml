@@ -51,19 +51,19 @@ services:
       - ./es-data:/usr/share/elasticsearch/data
       - ./certs:/usr/share/elasticsearch/config/certs
 
-  mlflow-deployment:
-    container_name: mlflow-deployment
-    build:
-      dockerfile: ops/deployment/Dockerfile
-    env_file:
-      - .env.dev
-    ports:
-      - "7001:7001"
-#    networks:
-#      - ops
-#    environment:
-#      OPENAI_API_KEY: ${OPENAI_API_KEY}
-    command: mlflow deployments start-server --config-path /mlflow_deployment/config.yaml --host 0.0.0.0 --port 7001
+#  mlflow-deployment:
+#    container_name: mlflow-deployment
+#    build:
+#      dockerfile: ops/deployment/Dockerfile
+#    env_file:
+#      - .env.dev
+#    ports:
+#      - "7001:7001"
+##    networks:
+##      - ops
+##    environment:
+##      OPENAI_API_KEY: ${OPENAI_API_KEY}
+#    command: mlflow deployments start-server --config-path /mlflow_deployment/config.yaml --host 0.0.0.0 --port 7001
 
   mlflow-tracking:
     container_name: mlflow-tracking
@@ -79,8 +79,8 @@ services:
 #      - ops-deployment
     volumes:
       - ./mlruns:/mlruns
-    environment:
-      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
+#    environment:
+#      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
     command: mlflow server --host 0.0.0.0 --port 5001
 #networks:
 #  ops:

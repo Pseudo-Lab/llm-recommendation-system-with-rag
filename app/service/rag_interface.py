@@ -7,7 +7,6 @@ from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_openai import ChatOpenAI
-from database.chroma_db import ChromaDB
 from vector.vector_store import VectorStoreInterface
 from langchain_core.prompts import PromptTemplate
 

@@ -1,0 +1,77 @@
+import mlflow
+import pandas as pd
+import requests
+
+def basic_query(input, top_k, workspace_id):
+    url = "http://3.36.208.188:8989/api/v1/retrieval/similarity_search/"  # 실제 URL로 변경 필요
+    data = {
+        "input": input,
+        "top_k": top_k,
+        "workspace_id": workspace_id
+    }
+    # POST 요청 보내기
+    try:
+        response = requests.post(url, json=data)
+        response = [str(r[0]["metadata"]["movieId"]) for r in response.json()]
+        return response
+
+    except Exception as e:
+        print(f'{e}')
+
+def self_query(input, top_k, workspace_id):
+    url = "http://3.36.208.188:8989/api/v1/retrieval/similarity_search/self_query"  # 실제 URL로 변경 필요
+    data = {
+        "input": input,
+        "top_k": top_k,
+        "workspace_id": workspace_id
+    }
+    # POST 요청 보내기
+    try:
+        response = requests.post(url, json=data)
+        return response.json()
+    except Exception as e:
+        print(f'{e}')
+
+if __name__ == "__main__":
+    data = pd.DataFrame(
+        {
+            "questions": [
+                "장예모 감독의 영화를 추천해주세요.",
+                "이경규 감독의 작품 중 추천해주실 만한 게 있을까요?",
+                "장훈 감독의 작품 중 한 편을 추천해주세요.",
+                "조스톤 테니 감독의 영화 중 추천해주실 만한 작품이 있을까요?",
+                "조쉬 더하멜 감독이 만든 영화 중 추천해주실 만한 것이 있을까요?"
+            ],
+            "ground_truth_context": [
+                ["2035", "2121", "4142", "4219", "10479", "11389", "12339", "15040", "16506", "27323", "29911", "40288", "41857", "42699", "44442", "60283", "64159", "64426", "85585", "92720", "117050", "128451", "150720", "167388"],
+                ["11354"],
+                ["2703", "45941", "50265", "55937", "95143", "100237"],
+                ["130646"],
+                ["151371"]
+            ]
+        }
+    )
+
+    top_k = 2
+    workspace_id = "e0cfd6eb-7528-420d-9250-88305855524b"
+
+    retrieved_movieId = []
+    for q in data['questions']:
+        response = basic_query(input=q, top_k=top_k, workspace_id=workspace_id)
+        retrieved_movieId.append(response)
+
+    data["retrieved_context"] = retrieved_movieId
+
+    mlflow.set_tracking_uri("http://localhost:5001")
+    mlflow.set_experiment("experiment_test")
+    with mlflow.start_run() as run:
+        evaluate_results = mlflow.evaluate(
+            data=data,
+            model_type="retriever",
+            targets="ground_truth_context",
+            predictions="retrieved_context",
+            evaluators="default",
+            evaluator_config={"retriever_k": top_k}
+        )
+
+
