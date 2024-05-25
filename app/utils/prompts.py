@@ -1,25 +1,3 @@
-# SONG_DATA_SOURCE = """\
-# ```json
-# {{
-#     "content": "Lyrics of a song",
-#     "attributes": {{
-#         "artist": {{
-#             "type": "string",
-#             "description": "Name of the song artist"
-#         }},
-#         "length": {{
-#             "type": "integer",
-#             "description": "Length of the song in seconds"
-#         }},
-#         "genre": {{
-#             "type": "string",
-#             "description": "The song genre, one of \"pop\", \"rock\" or \"rap\""
-#         }}
-#     }}
-# }}
-# ```\
-# """
-
 MOVIE_DATA_SOURCE = """\
 ```json
 {{
@@ -66,11 +44,21 @@ MOVIE_NO_FILTER_ANSWER = """\
 }}
 ```\
 """
+
 MOVIE_FULL_ANSWER = """\
 ```json
 {{
     "query": "멜로 감성",
     "filter": "and(or(like(\\"lead_role_etd_str\\", \\"장동건\\"), like(\\"supporting_role_etd_str\\", \\"장동건\\")))"
+}}
+```\
+"""
+
+MOVIE_DIRECTOR_ANSWER = """\
+```json
+{{
+    "query": "",
+    "filter": "like(\\"director_etd_str\\", \\"봉준호\\")"
 }}
 ```\
 """
@@ -85,7 +73,13 @@ MOVIE_DEFAULT_EXAMPLES = [
     {
         "i": 2,
         "data_source": MOVIE_DATA_SOURCE,
-        "user_query": "챗지피티가 만든 영화를 추천해줘",
+        "user_query": "봉준호 감독의 영화가 뭐가 있어?",
+        "structured_request": MOVIE_DIRECTOR_ANSWER,
+    },
+    {
+        "i": 3,
+        "data_source": MOVIE_DATA_SOURCE,
+        "user_query": "오늘의 날씨는 뭐야?",
         "structured_request": MOVIE_NO_FILTER_ANSWER,
     },
 ]
