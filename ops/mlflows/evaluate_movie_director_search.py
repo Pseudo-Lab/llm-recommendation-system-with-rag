@@ -28,7 +28,10 @@ def self_query(input, top_k, workspace_id):
     # POST 요청 보내기
     try:
         response = requests.post(url, json=data)
-        return response.json()
+        response = response.json()
+        response = [str(r['metadata']['movieId']) for r in response]
+        return response
+
     except Exception as e:
         print(f'{e}')
 
@@ -62,8 +65,8 @@ if __name__ == "__main__":
 
     data["retrieved_context"] = retrieved_movieId
 
-    mlflow.set_tracking_uri("http://localhost:5001")
-    mlflow.set_experiment("experiment_test")
+    mlflow.set_tracking_uri("http://3.36.208.188:5001")
+    mlflow.set_experiment("retriever_test")
     with mlflow.start_run() as run:
         evaluate_results = mlflow.evaluate(
             data=data,

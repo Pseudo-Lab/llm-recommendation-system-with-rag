@@ -2,6 +2,7 @@ import logging
 import uuid
 import os
 import json
+
 from typing import Optional, Sequence
 
 from langchain.chains.query_constructor.base import StructuredQueryOutputParser, get_query_constructor_prompt, \
@@ -14,10 +15,12 @@ from langchain.retrievers.self_query.elasticsearch import ElasticsearchTranslato
 from langchain_core.prompts import FewShotPromptTemplate, BasePromptTemplate
 from langchain_openai import ChatOpenAI
 
+from utils.logging import get_logger
 from utils.prompts import MOVIE_DATA_SOURCE, MOVIE_DEFAULT_EXAMPLES
 from utils.self_query_meta import metadata_field_info
 from vector.vector_store import VectorStoreInterface
 
+logger = get_logger(__name__)
 
 class RetrievalService:
     def __init__(self, vector: VectorStoreInterface):
