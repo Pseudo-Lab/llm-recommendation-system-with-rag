@@ -2,6 +2,7 @@ import logging
 import uuid
 import os
 import json
+
 from typing import Optional, Sequence
 
 from langchain.chains.query_constructor.base import StructuredQueryOutputParser, get_query_constructor_prompt, \
@@ -14,25 +15,29 @@ from langchain.retrievers.self_query.elasticsearch import ElasticsearchTranslato
 from langchain_core.prompts import FewShotPromptTemplate, BasePromptTemplate
 from langchain_openai import ChatOpenAI
 
+from utils.logging import get_logger
 from utils.prompts import MOVIE_DATA_SOURCE, MOVIE_DEFAULT_EXAMPLES
 from utils.self_query_meta import metadata_field_info
-from vector.vector import VectorInterface
+from utils.token import num_tokens_from_string
+from vector.vector_store import VectorStoreInterface
 
+logger = get_logger(__name__)
 
 class RetrievalService:
-    def __init__(self, vector: VectorInterface):
+    def __init__(self, vector: VectorStoreInterface):
         self.vector = vector
 
-    async def similarity_search(self, workspace_id: uuid.UUID, input: str, k: int):
+    async def similarity_search(self, workspace_id: uuid.UUID, input: str, k: int, score_threshold: float):
         vs = self.vector.get_vector_store(workspace_id=workspace_id)
-        docs = vs.similarity_search_with_score(input, k=k)
-        return docs
+        vs.as_retriever()
+        results = vs.similarity_search_with_relevance_scores(input, k=k, score_threshold=score_threshold)
+        return results
 
     async def ensemble_search(self, workspace_id, input, top_k):
         #TODO: bm25 + dense + self-query
         pass
 
-    async def similarity_search_with_self_query(self, workspace_id: uuid.UUID, input: str):
+    async def similarity_search_with_self_query(self, workspace_id: uuid.UUID, input: str, k: int, score_threshold: float):
         # https://github.com/langchain-ai/langchain/blob/master/cookbook/self_query_hotel_search.ipynb
         document_content_description = "영화를 추천해주세요."
         model = ChatOpenAI(
@@ -45,30 +50,27 @@ class RetrievalService:
             document_content_description,
             metadata_field_info,
         )
+        # prompt + input
+        prompt_with_query = prompt.format(query=input)
+        logger.info(f"self query prompt : {prompt_with_query}")
+
+        prompt_with_query_token_count = num_tokens_from_string(prompt_with_query, "cl100k_base")
+        logger.info(f"prompt token count : {prompt_with_query_token_count}")
 
         output_parser = StructuredQueryOutputParser.from_components()
         query_constructor = prompt | model | output_parser
+
         vs = self.vector.get_vector_store(workspace_id=workspace_id)
         retriever = SelfQueryRetriever(
             query_constructor=query_constructor,  # 이전에 생성한 쿼리 생성기
             vectorstore=vs,  # 벡터 저장소를 지정
-            structured_query_translator=ElasticsearchTranslator()
+            structured_query_translator=ElasticsearchTranslator(),
+            search_kwargs={"k": k, "score_threshold": score_threshold},
+            verbose=True
         )
-        docs = retriever.invoke(input)
+        docs = await retriever.ainvoke(input)
         return docs
 
-        # response = await query_constructor.ainvoke(input)
-        # print(prompt.format(query=input))
-        # print(response)
-        # retriever = SelfQueryRetriever.from_llm(
-        #     model,
-        #     vs,
-        #     document_content_description,
-        #     metadata_field_info,
-        #     enable_limit=True,
-        #     search_kwargs={"k": 2}
-        # )
-        # return await retriever.ainvoke(input)
 
     def custom_query_constructor_prompt(
             self,

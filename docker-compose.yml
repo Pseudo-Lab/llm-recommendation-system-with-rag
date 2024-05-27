@@ -28,7 +28,7 @@ services:
     environment:
       - node.name=es
       - discovery.type=single-node
-      - discovery.seed_hosts=es
+      - discovery.seed_hosts=elasticsearch
       - ELASTIC_PASSWORD=movie
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
@@ -54,30 +54,34 @@ services:
 #  mlflow-deployment:
 #    container_name: mlflow-deployment
 #    build:
-#      dockerfile: mlflow/deployment/Dockerfile
+#      dockerfile: ops/deployment/Dockerfile
+#    env_file:
+#      - .env.dev
 #    ports:
 #      - "7001:7001"
-#    networks:
-#      - mlflow
-#    environment:
-#      OPENAI_API_KEY: ${OPENAI_API_KEY}
+##    networks:
+##      - ops
+##    environment:
+##      OPENAI_API_KEY: ${OPENAI_API_KEY}
 #    command: mlflow deployments start-server --config-path /mlflow_deployment/config.yaml --host 0.0.0.0 --port 7001
 
-#  mlflow-tracking:
-#    container_name: mlflow-tracking
-#    build:
-#      dockerfile: mlflow/tracking/Dockerfile
-#    env_file:
-#      - .env.local
-#    ports:
-#      - "5001:5001"
+  mlflow-tracking:
+    container_name: mlflow-tracking
+    build:
+      dockerfile: ops/tracking/Dockerfile
+    env_file:
+      - .env.dev
+    ports:
+      - "5001:5001"
 #    networks:
-#      - mlflow
+#      - ops
 #    links:
-#      - mlflow-deployment
+#      - ops-deployment
+    volumes:
+      - ./mlruns:/mlruns
 #    environment:
 #      MLFLOW_DEPLOYMENTS_TARGET: ${MLFLOW_DEPLOYMENTS_TARGET}
-#    command: mlflow server --host 0.0.0.0 --port 5001
+    command: mlflow server --host 0.0.0.0 --port 5001
 #networks:
-#  mlflow:
+#  ops:
 

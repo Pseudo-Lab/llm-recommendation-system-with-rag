@@ -1,12 +1,11 @@
 import os
 import uuid
 from tqdm import tqdm
-from database.chroma_db import ChromaDB
 from utils.data import convert_to_dicts
-from vector.vector import VectorInterface
+from vector.vector_store import VectorStoreInterface
 
 
-class ChromaVector(VectorInterface):
+class ChromaVector(VectorStoreInterface):
     def create_vector(self, text):
         return text
 
@@ -23,7 +22,7 @@ class ChromaVector(VectorInterface):
 
         workspace_id = uuid.uuid4()
         vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}{workspace_id}'
-        vs = ChromaDB.get_vectorstore(vector_path)
+        # vs = ChromaDB.get_vectorstore(vector_path)
 
         for i in tqdm(range(len(metadatas)//1000 + 1)):
             s = i * 1000

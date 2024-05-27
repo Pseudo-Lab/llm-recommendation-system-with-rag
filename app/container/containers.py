@@ -7,7 +7,6 @@ from service.rag_interface import OpenAIRag
 from service.retrieval_service import RetrievalService
 from vector.chroma import ChromaVector
 from vector.elasticsearch import Elasticsearch
-from vector.vector import VectorInterface
 
 
 class Container(containers.DeclarativeContainer):
@@ -30,10 +29,12 @@ class Container(containers.DeclarativeContainer):
     movie_service = providers.Factory(MovieService, movie_repository=movie_repository)
 
     # vector
-    vector = providers.Factory(Elasticsearch, movie_service=movie_service)
+    vector_store = providers.Factory(Elasticsearch, movie_service=movie_service)
 
-    retrieval_service = providers.Factory(RetrievalService, vector=vector)
+    #rag
+    OpenAI_RAG = providers.Factory(OpenAIRag, vector_store=vector_store)
+
+    retrieval_service = providers.Factory(RetrievalService, vector=vector_store)
 
     # interface
-    rag_template = providers.Factory(OpenAIRag, vector_service=vector)
-    gen_service = providers.Factory(GenService, vector_service=vector, rag=rag_template)
+    gen_service = providers.Factory(GenService, rag=OpenAI_RAG)

@@ -7,7 +7,6 @@ from service.retrieval_service import RetrievalService
 
 router = APIRouter()
 
-
 @router.post(
     path="/similarity_search/",
     description="유사도 기반 검색"
@@ -18,7 +17,7 @@ async def similarity_search(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
-        return await retrieval_service.similarity_search(request.workspace_id, request.input, request.top_k)
+        return await retrieval_service.similarity_search(request.workspace_id, request.input, request.top_k, request.score_threshold)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -47,6 +46,11 @@ async def similarity_search_with_self_query(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
-        return await retrieval_service.similarity_search_with_self_query(request.workspace_id, request.input)
+        return await retrieval_service.similarity_search_with_self_query(
+            request.workspace_id,
+            request.input,
+            request.top_k,
+            request.score_threshold
+        )
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))

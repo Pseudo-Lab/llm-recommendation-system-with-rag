@@ -10,11 +10,12 @@ from langchain_core.runnables import RunnablePassthrough
 from service.rag_interface import RagTemplate
 from langchain_openai import ChatOpenAI
 from utils.timer import atimer
+from vector.vector_store import VectorStoreInterface
+
 
 class GenService:
-    def __init__(self, vector_service, rag: RagTemplate):
+    def __init__(self, rag: RagTemplate):
         self.rag = rag
-        self.vector_service = vector_service
 
     # @staticmethod
     async def gen_response_stream(self, input: str, workspace_id: uuid.UUID) -> AsyncIterable[str]:
@@ -29,9 +30,11 @@ class GenService:
         )
         import time
         start_time = time.time()
-        vs = self.vector_service.get_vector(workspace_id=workspace_id)
-        retriever = vs.as_retriever(search_type="similarity_score_threshold",
-                                              search_kwargs={"k": 2, "score_threshold": 0.1})
+        vs = self.vector_store.get_vector_store(workspace_id=workspace_id)
+        retriever = vs.as_retriever(
+            search_type="similarity_score_threshold",
+            search_kwargs={"k": 2, "score_threshold": 0.1}
+        )
 
         prompt = '''template="You are an assistant for question-answering tasks. 
                 Use the following pieces of retrieved context to answer the question. 
