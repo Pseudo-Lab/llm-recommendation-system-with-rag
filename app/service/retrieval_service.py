@@ -65,7 +65,11 @@ class RetrievalService:
             query_constructor=query_constructor,  # 이전에 생성한 쿼리 생성기
             vectorstore=vs,  # 벡터 저장소를 지정
             structured_query_translator=ElasticsearchTranslator(),
-            search_kwargs={"k": k, "score_threshold": score_threshold},
+            search_kwargs={
+                "k": k,
+                "fetch_k": 20
+                # "score_threshold": score_threshold
+            },
             verbose=True
         )
         docs = await retriever.ainvoke(input)

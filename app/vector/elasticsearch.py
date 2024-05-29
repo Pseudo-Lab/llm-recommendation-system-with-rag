@@ -7,9 +7,7 @@ from langchain_community.retrievers import (
 )
 from langchain_openai import OpenAIEmbeddings
 from tqdm import tqdm
-
-from service.movie_service import MovieService
-from utils.data import convert_to_dicts
+from utils.data import convert_to_dataframe, convert_to_document
 from vector.vector_store import VectorStoreInterface
 from langchain_core.documents import Document
 
@@ -62,19 +60,15 @@ class Elasticsearch(VectorStoreInterface):
         # 조회
         #TODO DI 순환참조 해결
         movies = self.movie_service.get_movie_info()
-        docs = convert_to_dicts(movies)
+        df = convert_to_dataframe(movies)
+        docs = convert_to_document(df)
 
         workspace_id = uuid.uuid4()
-        await self.create_vector(workspace_id=workspace_id, docs=docs)
-        # vs = self.get_vector_store(workspace_id=workspace_id)
-        # print(len(docs))
-        # result = await vs.aadd_documents(docs)
-        # print(result)
-        # for i in tqdm(range(len(metadatas) // 1000 + 1)):
-        #     s = i * 1000
-        #     e = min((i + 1) * 1000, len(metadatas))
-        #     vs.add_texts(
-        #         texts=texts[s:e],
-        #         metadatas=metadatas[s:e]
-        #     )
+        # await self.create_vector(workspace_id=workspace_id, docs=docs)
+        vs = self.get_vector_store(workspace_id=workspace_id)
+
+        for i in tqdm(range(len(docs) // 500 + 1)):
+            s = i * 500
+            e = min((i + 1) * 500, len(docs))
+            await vs.aadd_documents(docs[s:e])
         return {"workspace_id": workspace_id}

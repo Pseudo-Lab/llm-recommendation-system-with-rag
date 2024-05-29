@@ -1,7 +1,7 @@
 import os
 import uuid
 from tqdm import tqdm
-from utils.data import convert_to_dicts
+from utils.data import convert_to_dicts, convert_to_dataframe, convert_to_document
 from vector.vector_store import VectorStoreInterface
 
 
@@ -18,15 +18,16 @@ class ChromaVector(VectorStoreInterface):
     def transform_to_vectors(self):
         # 조회
         movies = self.movie_service.get_movie_info()
-        metadatas, texts = convert_to_dicts(movies)
+        df = convert_to_dataframe(movies)
+        docs = convert_to_document(df)
 
         workspace_id = uuid.uuid4()
         vector_path = f'{os.getenv("VECTOR_DB_PATH_PREFIX")}{workspace_id}'
         # vs = ChromaDB.get_vectorstore(vector_path)
 
-        for i in tqdm(range(len(metadatas)//1000 + 1)):
+        for i in tqdm(range(len(docs)//1000 + 1)):
             s = i * 1000
-            e = min((i+1) * 1000, len(metadatas))
+            e = min((i+1) * 1000, len(docs))
             vs.add_texts(
                 texts=texts[s:e],
                 metadatas=metadatas[s:e]
