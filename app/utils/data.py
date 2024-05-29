@@ -15,7 +15,7 @@ def convert_to_document(data: pd.DataFrame) -> List[Document]:
         support_role = metadata['supporting_role_etd_str']
         metadata.pop('synopsis_prep')
 
-        page_content = f'{titleKo} {titleEn} {lead_role} {support_role}\n {synopsis_prep}'
+        page_content = f'<meta> {titleKo} {titleEn} {lead_role} {support_role} </meta>\n {synopsis_prep}'
         doc.append(Document(page_content=page_content, metadata=metadata))
     return doc
 
