@@ -40,7 +40,7 @@ if __name__ == "__main__":
         }
     )
 
-    mlflow.set_tracking_uri("http://localhost:5001")
+    mlflow.set_tracking_uri("http://3.36.208.188:5001")
     mlflow.set_experiment("experiment_test")
     with mlflow.start_run() as run:
         evaluate_results = mlflow.evaluate(
