@@ -46,7 +46,7 @@ def convert_to_dicts(movies):
                 "lead_role_etd_str": synopsis_prep.lead_role_etd_str or "",
                 "supporting_role_etd_str": synopsis_prep.supporting_role_etd_str or "",
                 "director_etd_str": synopsis_prep.director_etd_str or "",
-                "synopsis_prep": synopsis_prep.synopsis_prep[:200] # 200자만
+                "synopsis_prep": synopsis_prep.synopsis_prep[:300] # 300자만
             }
             doc.append(movie_dic)
         return doc

@@ -18,7 +18,7 @@ class VectorStoreInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_vector_store(self, workspace_id: uuid.UUID) -> VectorStore:
+    def get_vector_store(self, workspace_id: uuid.UUID, strategy) -> VectorStore:
         '''
         vector 가져오기
         :param workspace_id:

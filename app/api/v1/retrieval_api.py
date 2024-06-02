@@ -8,18 +8,33 @@ from service.retrieval_service import RetrievalService
 router = APIRouter()
 
 @router.post(
-    path="/similarity_search/",
+    path="/dense_search/",
     description="유사도 기반 검색"
 )
 @inject
-async def similarity_search(
+async def dense_search(
         request: Search,
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
-        return await retrieval_service.similarity_search(request.workspace_id, request.input, request.top_k, request.score_threshold)
+        return await retrieval_service.dense_search(request.workspace_id, request.input, request.top_k, request.score_threshold)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+@router.post(
+    path="/sparse_search/",
+    description="키워드 기반 검색"
+)
+@inject
+async def sparse_search(
+        request: Search,
+        retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
+):
+    try:
+        return await retrieval_service.sparse_search(request.workspace_id, request.input, request.top_k, request.score_threshold)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 
 @router.post(
     path="/ensemble_search/",
@@ -31,12 +46,12 @@ async def ensemble_search(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
-        return await retrieval_service.ensemble_search(request.workspace_id, request.input, request.top_k)
+        return await retrieval_service.ensemble_search(request.workspace_id, request.input, request.top_k, request.score_threshold)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post(
-    path="/similarity_search/self_query",
+    path="/self_query/",
     description="셀프 쿼리 기반 검색"
 
 )

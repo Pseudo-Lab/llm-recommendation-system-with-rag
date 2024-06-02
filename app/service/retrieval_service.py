@@ -10,9 +10,10 @@ from langchain.chains.query_constructor.base import StructuredQueryOutputParser,
 from langchain.chains.query_constructor.ir import Comparator, Operator
 from langchain.chains.query_constructor.prompt import DEFAULT_PREFIX, DEFAULT_SUFFIX, EXAMPLES_WITH_LIMIT, \
     EXAMPLE_PROMPT, DEFAULT_EXAMPLES, DEFAULT_SCHEMA_PROMPT, SCHEMA_WITH_LIMIT_PROMPT
-from langchain.retrievers import SelfQueryRetriever
+from langchain.retrievers import SelfQueryRetriever, EnsembleRetriever
 from langchain.retrievers.self_query.elasticsearch import ElasticsearchTranslator
 from langchain_core.prompts import FewShotPromptTemplate, BasePromptTemplate
+from langchain_elasticsearch.vectorstores import BM25RetrievalStrategy
 from langchain_openai import ChatOpenAI
 
 from utils.logging import get_logger
@@ -27,15 +28,26 @@ class RetrievalService:
     def __init__(self, vector: VectorStoreInterface):
         self.vector = vector
 
-    async def similarity_search(self, workspace_id: uuid.UUID, input: str, k: int, score_threshold: float):
-        vs = self.vector.get_vector_store(workspace_id=workspace_id)
+    async def dense_search(self, workspace_id: uuid.UUID, input: str, k: int, score_threshold: float):
+        vs = self.vector.get_vector_store(workspace_id=workspace_id, strategy=None)
         vs.as_retriever()
-        results = vs.similarity_search_with_relevance_scores(input, k=k, score_threshold=score_threshold)
+        results = vs.similarity_search(input, k=k, score_threshold=score_threshold)
         return results
 
-    async def ensemble_search(self, workspace_id, input, top_k):
-        #TODO: bm25 + dense + self-query
-        pass
+    async def sparse_search(self, workspace_id: uuid.UUID, input: str, top_k: int, score_threshold: float):
+        # https://python.langchain.com/v0.1/docs/integrations/vectorstores/elasticsearch/#bm25retrievalstrategy
+        vs = self.vector.get_vector_store(workspace_id=workspace_id, strategy=BM25RetrievalStrategy())
+        results = vs.similarity_search(input, k=top_k, score_threshold=score_threshold)
+        return results
+
+    async def ensemble_search(self, workspace_id: uuid.UUID, input: str, top_k: int, score_threshold: float):
+
+        sparse = self.vector.get_vector_store(workspace_id=workspace_id, strategy=BM25RetrievalStrategy()).as_retriever()
+        dense = self.vector.get_vector_store(workspace_id=workspace_id, strategy=None).as_retriever(search_kwargs={"k": top_k})
+        ensemble_retriever = EnsembleRetriever(retrievers=[sparse, dense],
+                                               weights=[0.4, 0.6])
+        results = ensemble_retriever.get_relevant_documents(input)
+        return results
 
     async def similarity_search_with_self_query(self, workspace_id: uuid.UUID, input: str, k: int, score_threshold: float):
         # https://github.com/langchain-ai/langchain/blob/master/cookbook/self_query_hotel_search.ipynb
@@ -60,14 +72,14 @@ class RetrievalService:
         output_parser = StructuredQueryOutputParser.from_components()
         query_constructor = prompt | model | output_parser
 
-        vs = self.vector.get_vector_store(workspace_id=workspace_id)
+        vs = self.vector.get_vector_store(workspace_id=workspace_id, strategy=None)
         retriever = SelfQueryRetriever(
             query_constructor=query_constructor,  # 이전에 생성한 쿼리 생성기
             vectorstore=vs,  # 벡터 저장소를 지정
             structured_query_translator=ElasticsearchTranslator(),
             search_kwargs={
                 "k": k,
-                "fetch_k": 20
+                "fetch_k": 40
                 # "score_threshold": score_threshold
             },
             verbose=True
@@ -117,4 +129,6 @@ class RetrievalService:
             suffix=suffix,
             prefix=prefix,
         )
+
+
 
