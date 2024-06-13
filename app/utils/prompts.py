@@ -49,7 +49,7 @@ MOVIE_FULL_ANSWER = """\
 ```json
 {{
     "query": "멜로 감성",
-    "filter": "and(or(like(\\"lead_role_etd_str\\", \\"장동건\\"), like(\\"supporting_role_etd_str\\", \\"장동건\\")))"
+    "filter": "and(or(eq(\\"lead_role_etd_str\\", \\"장동건\\"), eq(\\"supporting_role_etd_str\\", \\"장동건\\")))"
 }}
 ```\
 """
@@ -58,7 +58,7 @@ MOVIE_DIRECTOR_ANSWER = """\
 ```json
 {{
     "query": "",
-    "filter": "like(\\"director_etd_str\\", \\"봉준호\\")"
+    "filter": "eq(\\"director_etd_str\\", \\"봉준호\\")"
 }}
 ```\
 """

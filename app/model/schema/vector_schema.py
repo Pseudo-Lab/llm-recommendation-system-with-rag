@@ -15,6 +15,7 @@ class Search(BaseModel):
     input: str
     top_k: int
     score_threshold: float
+    openai_key: str
 
     class Config:
         json_schema_extra = {
@@ -22,7 +23,8 @@ class Search(BaseModel):
                 "workspace_id": "76241726-616d-46bd-81ff-dfd07579d069",
                 "input": "show me the korean movies?",
                 "top_k": 2,
-                "score_threshold": 0.8
+                "score_threshold": 0.8,
+                "openai_key": ""
             }
         }
 

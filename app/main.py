@@ -4,11 +4,15 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
+
 from fastapi.templating import Jinja2Templates
-from api.router import api_router
-from container.containers import Container
+
 
 def create_app() -> FastAPI:
+    # 환경 변수 설정 후 아래의 모듈이 import되도록 위치 전환
+    from api.router import api_router
+    from container.containers import Container
+
     app = FastAPI()
     container = Container()
     container.config.db_url.from_env("MYSQL_DB_URL")

@@ -13,7 +13,6 @@ class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
     wiring_config = containers.WiringConfiguration(modules=[
         "api.v1.vector_api",
-        "api.v1.generate_api",
         "api.v1.retrieval_api"
         # "app.api.v1.test_api",
     ])

@@ -33,19 +33,18 @@ def convert_to_dicts(movies):
     else:
         doc = []
         for movie, synopsis_prep in movies:
-            #TODO or "" 제거
             movie_dic = {
                 "movieId": movie.movieId,
-                "titleKo": movie.titleKo or "",
-                "titleEn": movie.titleEn or "",
+                "titleKo": movie.titleKo,
+                "titleEn": movie.titleEn,
                 # "synopsis": movie.synopsis or "",
                 # # "cast" : movie.cast,
-                "mainPageUrl": movie.mainPageUrl or "",
-                "posterUrl": movie.posterUrl or "",
-                "numOfSiteRatings": movie.numOfSiteRatings or "",
-                "lead_role_etd_str": synopsis_prep.lead_role_etd_str or "",
-                "supporting_role_etd_str": synopsis_prep.supporting_role_etd_str or "",
-                "director_etd_str": synopsis_prep.director_etd_str or "",
+                "mainPageUrl": movie.mainPageUrl,
+                "posterUrl": movie.posterUrl,
+                "numOfSiteRatings": movie.numOfSiteRatings,
+                "lead_role_etd_str": synopsis_prep.lead_role_etd_str.split(", "),
+                "supporting_role_etd_str": synopsis_prep.supporting_role_etd_str.split(", "),
+                "director_etd_str": synopsis_prep.director_etd_str.split(", "),
                 "synopsis_prep": synopsis_prep.synopsis_prep[:300] # 300자만
             }
             doc.append(movie_dic)

@@ -1,6 +1,6 @@
+import os
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, HTTPException, Depends
-
 from container.containers import Container
 from model.schema.vector_schema import Search
 from service.retrieval_service import RetrievalService
@@ -17,6 +17,8 @@ async def dense_search(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
+        if request.openai_key:
+            os.environ["OPENAI_API_KEY"] = request.openai_key
         return await retrieval_service.dense_search(request.workspace_id, request.input, request.top_k, request.score_threshold)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -31,6 +33,8 @@ async def sparse_search(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
+        if request.openai_key:
+            os.environ["OPENAI_API_KEY"] = request.openai_key
         return await retrieval_service.sparse_search(request.workspace_id, request.input, request.top_k, request.score_threshold)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -46,6 +50,8 @@ async def ensemble_search(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
+        if request.openai_key:
+            os.environ["OPENAI_API_KEY"] = request.openai_key
         return await retrieval_service.ensemble_search(request.workspace_id, request.input, request.top_k, request.score_threshold)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -61,6 +67,9 @@ async def similarity_search_with_self_query(
         retrieval_service: RetrievalService = Depends(Provide[Container.retrieval_service])
 ):
     try:
+        if request.openai_key:
+            os.environ["OPENAI_API_KEY"] = request.openai_key
+
         return await retrieval_service.similarity_search_with_self_query(
             request.workspace_id,
             request.input,

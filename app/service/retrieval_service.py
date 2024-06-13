@@ -42,11 +42,11 @@ class RetrievalService:
 
     async def ensemble_search(self, workspace_id: uuid.UUID, input: str, top_k: int, score_threshold: float):
 
-        sparse = self.vector.get_vector_store(workspace_id=workspace_id, strategy=BM25RetrievalStrategy()).as_retriever()
+        sparse = self.vector.get_vector_store(workspace_id=workspace_id, strategy=BM25RetrievalStrategy()).as_retriever(search_kwargs={"k": top_k})
         dense = self.vector.get_vector_store(workspace_id=workspace_id, strategy=None).as_retriever(search_kwargs={"k": top_k})
         ensemble_retriever = EnsembleRetriever(retrievers=[sparse, dense],
-                                               weights=[0.4, 0.6])
-        results = ensemble_retriever.get_relevant_documents(input)
+                                               weights=[0.7, 0.3])
+        results = ensemble_retriever.get_relevant_documents(input)[:top_k]
         return results
 
     async def similarity_search_with_self_query(self, workspace_id: uuid.UUID, input: str, k: int, score_threshold: float):
@@ -64,7 +64,7 @@ class RetrievalService:
         )
         # prompt + input
         prompt_with_query = prompt.format(query=input)
-        logger.info(f"self query prompt : {prompt_with_query}")
+        # logger.info(f"self query prompt : {prompt_with_query}")
 
         prompt_with_query_token_count = num_tokens_from_string(prompt_with_query, "cl100k_base")
         logger.info(f"prompt token count : {prompt_with_query_token_count}")
@@ -79,7 +79,7 @@ class RetrievalService:
             structured_query_translator=ElasticsearchTranslator(),
             search_kwargs={
                 "k": k,
-                "fetch_k": 40
+                "fetch_k": 100
                 # "score_threshold": score_threshold
             },
             verbose=True
