@@ -7,18 +7,20 @@ from starlette.middleware.cors import CORSMiddleware
 
 from fastapi.templating import Jinja2Templates
 
+from api.router import main_router
+
 
 def create_app() -> FastAPI:
     # 환경 변수 설정 후 아래의 모듈이 import되도록 위치 전환
-    from api.router import api_router
+    # from api.router import api_router
     from container.containers import Container
 
     app = FastAPI()
-    container = Container()
-    container.config.db_url.from_env("MYSQL_DB_URL")
+    # container = Container()
+    # container.config.db_url.from_env("MYSQL_DB_URL")
     # templates = Jinja2Templates(directory="app/templates")
-    db = container.db()
-    db.create_database()
+    # db = container.db()
+    # db.create_database()
     origins = [
         "*"
     ]
@@ -29,8 +31,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.container = container
-    app.include_router(api_router, prefix="/api")
+    # app.container = container
+    # app.include_router(api_router, prefix="/api")
+    app.include_router(main_router, prefix="/api")
     return app
 
     # @app.get("/")

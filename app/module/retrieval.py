@@ -1,0 +1,134 @@
+import logging
+import uuid
+import os
+import json
+
+from typing import Optional, Sequence
+
+from langchain.chains.query_constructor.base import StructuredQueryOutputParser, get_query_constructor_prompt, \
+    load_query_constructor_runnable
+from langchain.chains.query_constructor.ir import Comparator, Operator
+from langchain.chains.query_constructor.prompt import DEFAULT_PREFIX, DEFAULT_SUFFIX, EXAMPLES_WITH_LIMIT, \
+    EXAMPLE_PROMPT, DEFAULT_EXAMPLES, DEFAULT_SCHEMA_PROMPT, SCHEMA_WITH_LIMIT_PROMPT
+from langchain.retrievers import SelfQueryRetriever, EnsembleRetriever
+from langchain.retrievers.self_query.elasticsearch import ElasticsearchTranslator
+from langchain_core.prompts import FewShotPromptTemplate, BasePromptTemplate
+from langchain_elasticsearch.vectorstores import BM25RetrievalStrategy
+from langchain_openai import ChatOpenAI
+
+from utils.logging import get_logger
+from utils.prompts import MOVIE_DATA_SOURCE, MOVIE_DEFAULT_EXAMPLES
+from utils.self_query_meta import metadata_field_info
+from utils.token import num_tokens_from_string
+from vector.vector_store import VectorStoreInterface
+from vector.elasticsearch import Elasticsearch
+
+logger = get_logger(__name__)
+
+
+class Retrieval:
+    def __init__(self, vector_store: Elasticsearch):
+        self.vector = vector_store
+
+    async def dense_search(self, workspace_id: uuid.UUID, input: str, k: int, score_threshold: float):
+        vs = self.vector.get_vector_store(workspace_id=workspace_id, strategy=None)
+        vs.as_retriever()
+        results = vs.similarity_search(input, k=k, score_threshold=score_threshold)
+        return results
+
+    async def sparse_search(self, workspace_id: uuid.UUID, input: str, top_k: int, score_threshold: float):
+        # https://python.langchain.com/v0.1/docs/integrations/vectorstores/elasticsearch/#bm25retrievalstrategy
+        vs = self.vector.get_vector_store(workspace_id=workspace_id, strategy=BM25RetrievalStrategy())
+        results = vs.similarity_search(input, k=top_k, score_threshold=score_threshold)
+        return results
+
+    async def ensemble_search(self, workspace_id: uuid.UUID, input: str, top_k: int, score_threshold: float):
+        sparse = self.vector.get_vector_store(workspace_id=workspace_id, strategy=BM25RetrievalStrategy()).as_retriever(
+            search_kwargs={"k": top_k})
+        dense = self.vector.get_vector_store(workspace_id=workspace_id, strategy=None).as_retriever(
+            search_kwargs={"k": top_k})
+        ensemble_retriever = EnsembleRetriever(retrievers=[sparse, dense],
+                                               weights=[0.7, 0.3])
+        results = ensemble_retriever.get_relevant_documents(input)[:top_k]
+        return results
+
+    async def similarity_search_with_self_query(self, workspace_id: uuid.UUID, input: str, k: int,
+                                                score_threshold: float):
+        # https://github.com/langchain-ai/langchain/blob/master/cookbook/self_query_hotel_search.ipynb
+        document_content_description = "영화를 추천해주세요."
+        model = ChatOpenAI(
+            temperature=0,
+            model_name=os.getenv("LLM_MODEL_NAME"),
+            verbose=True
+        )
+        # 자연어 질의 -> filter query
+        prompt = self.custom_query_constructor_prompt(
+            document_content_description,
+            metadata_field_info,
+        )
+        # prompt + input
+        prompt_with_query = prompt.format(query=input)
+        # logger.info(f"self query prompt : {prompt_with_query}")
+
+        prompt_with_query_token_count = num_tokens_from_string(prompt_with_query, "cl100k_base")
+        logger.info(f"prompt token count : {prompt_with_query_token_count}")
+
+        output_parser = StructuredQueryOutputParser.from_components()
+        query_constructor = prompt | model | output_parser
+
+        vs = self.vector.get_vector_store(workspace_id=workspace_id, strategy=None)
+        retriever = SelfQueryRetriever(
+            query_constructor=query_constructor,  # 이전에 생성한 쿼리 생성기
+            vectorstore=vs,  # 벡터 저장소를 지정
+            structured_query_translator=ElasticsearchTranslator(),
+            search_kwargs={
+                "k": k,
+                "fetch_k": 100
+                # "score_threshold": score_threshold
+            },
+            verbose=True
+        )
+        docs = await retriever.ainvoke(input)
+        return docs
+
+    def custom_query_constructor_prompt(
+            self,
+            document_contents: str,
+            attribute_info,
+            enable_limit: bool = False,
+            schema_prompt: Optional[BasePromptTemplate] = None,
+            allowed_operators: Sequence[Operator] = tuple(Operator),
+            allowed_comparators: Sequence[Comparator] = tuple(Comparator),
+            examples: Optional[Sequence] = None,
+    ):
+        default_schema_prompt = (
+            SCHEMA_WITH_LIMIT_PROMPT if enable_limit else DEFAULT_SCHEMA_PROMPT
+        )
+        schema_prompt = schema_prompt or default_schema_prompt
+
+        info_dicts = {}
+        for i in attribute_info:
+            i_dict = dict(i)
+            info_dicts[i_dict.pop("name")] = i_dict
+        attribute_str = json.dumps(info_dicts, indent=4, ensure_ascii=False).replace("{", "{{").replace("}", "}}")
+
+        schema = schema_prompt.format(
+            allowed_comparators=" | ".join(allowed_comparators),
+            allowed_operators=" | ".join(allowed_operators),
+        )
+        examples = examples or (
+            # EXAMPLES_WITH_LIMIT if enable_limit else DEFAULT_EXAMPLES
+            EXAMPLES_WITH_LIMIT if enable_limit else MOVIE_DEFAULT_EXAMPLES
+        )
+        example_prompt = EXAMPLE_PROMPT
+        prefix = DEFAULT_PREFIX.format(schema=schema)
+        suffix = DEFAULT_SUFFIX.format(
+            i=len(examples) + 1, content=document_contents, attributes=attribute_str
+        )
+        return FewShotPromptTemplate(
+            examples=list(examples),
+            example_prompt=example_prompt,
+            input_variables=["query"],
+            suffix=suffix,
+            prefix=prefix,
+        )
